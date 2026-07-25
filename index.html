@@ -268,9 +268,9 @@ function rsc(){
   courses.forEach(c=>{
     const dates=expanded(c);dates.forEach(d=>{
       const m=c.marks&&c.marks[d]?c.marks[d]:{completed:false,paid:false,a:null};
-      if(d.startsWith(yr+'-'+mn)){if(m.paid)monthPaid+=c.tuition||0;else if(d<=td_)pending+=c.tuition||0}
+      if(d.startsWith(yr+'-'+mn)){if(m.paid)monthPaid+=c.tuition||0}if(d<=td_&&m.completed&&!m.paid&&!m.skipped)pending+=c.tuition||0
       const ep=c.endTime.split(':');const ed=new Date(d+'T00:00:00');ed.setHours(+ep[0],+ep[1],0,0);
-      if(now>ed&&!m.completed)toMark++;
+      if(now>ed&&!m.completed&&!m.skipped)toMark++;
     });
   });
   g.innerHTML=`<div class="sc-card" onclick="cdd=today();swv('day');cddScroll()"><div class="sc-icon">📚</div><div class="sc-val">${todayCount}</div><div class="sc-lbl">今日课程</div></div>
@@ -297,15 +297,14 @@ function rwv(){const c=D.getElementById('weekView'),tod=today();const dates=[];f
       const top=sm/30*22,ht=Math.max((em-sm)/30*22,24);
       const mk=co.marks&&co.marks[dates[d]]?co.marks[dates[d]]:null;
       const endDt=new Date(dates[d]+'T00:00:00');endDt.setHours(+co.endTime.split(':')[0],+co.endTime.split(':')[1],0,0);
-      const needed=(now>endDt&&(!mk||!mk.completed));
-      const attendance=mk?mk.a:null;
+      const needed=(now>endDt&&(!mk||(!mk.completed&&!mk.skipped)));
       const paid=mk?mk.paid:isAutoPaid(co,dates[d]);
       const bl=document.createElement('div');bl.className='course-block'+(needed?' warn':'');
       bl.style.cssText=`top:${top}px;height:${ht}px;background:${co.color};pointer-events:auto;`;
       const studentName=sn(co.studentId);
       const orgName=on(co.organizationId);
-      const aIcon=attendance==='present'?'✅':attendance==='leave'?'📝':attendance==='absent'?'❌':'';
-      let html='<div class="cb-row cb-name">'+co.name+' · '+studentName+(needed?' ⚠':'')+'</div>';
+      const aIcon=mk&&mk.skipped?'🚫':(mk&&mk.completed?'✅':'');
+      let html='<div class="cb-row cb-name">'+co.name+(studentName?'·'+studentName:'')+(needed?' ⚠':'')+'</div>';
       if(ht>=44)html+='<div class="cb-row cb-meta">'+co.startTime+'-'+co.endTime+' '+(co.location||'')+'</div>';
       if(ht>=66){
         html+='<div class="cb-row cb-meta">'+(orgName||'');
@@ -330,13 +329,10 @@ function rdv(){const c=D.getElementById('dayView'),tod=today(),dc=getForDate(cdd
     const snm=sn(co.studentId),onm=on(co.organizationId);
     const ep=co.endTime.split(':');const endDt=new Date(cdd+'T00:00:00');endDt.setHours(+ep[0],+ep[1],0,0);
     const canEdit=now>endDt;const mk=co.marks&&co.marks[cdd]?co.marks[cdd]:{completed:false,paid:false,a:null};
-    const needed=now>endDt&&!mk.completed;
+    const needed=now>endDt&&!mk.completed&&!mk.skipped;
     const paid=canEdit?mk.paid:isAutoPaid(co,cdd);
-    const a=mk.a||null;
-    const aText=a==='present'?'✅ 已到':a==='leave'?'📝 请假':a==='absent'?'❌ 缺课':'🟦 考勤';
-    const aCls=a==='present'?'green':a==='leave'?'blue':a==='absent'?'red':'gray';
-    const completeText=mk.completed?'✅ 已上课':'⚠ 待上课';
-    const completeCls=mk.completed?'green':'orange';
+    const statusText=mk.completed?'✅ 已上课':(mk.skipped?'🚫 不上课':'⬜ 未上课');
+    const statusCls=mk.completed?'green':(mk.skipped?'orange':'gray');
     const paidText=paid?'💰 已收':'🔴 未收';
     const paidCls=paid?'green':'red';
     h+=`<div class="day-card${needed?' warn':''}" style="--c:${co.color}" data-id="${co.id}" data-date="${cdd}">
@@ -348,9 +344,8 @@ function rdv(){const c=D.getElementById('dayView'),tod=today(),dc=getForDate(cdd
       ${co.tuition?`<div class="dc-tuition"><span class="dc-tuition-label">课费</span><span>¥${co.tuition}</span></div>`:''}
       ${co.note?`<div class="dc-info"><span class="dc-info-icon">📌</span><span>${co.note}</span></div>`:''}
       <div class="dc-status">
-        <span class="dc-chip ${aCls}" data-action="cycleAttendance">${aText}</span>
-        <span class="dc-chip ${completeCls}" data-action="toggleComplete">${completeText}</span>
-        <span class="dc-chip ${paidCls}" data-action="togglePaid">${paidText}</span>
+        <span class="dc-chip ${statusCls}" data-action="cycleStatus">${statusText}</span>
+        <span class="dc-chip ${paidCls}" data-action="togglePaid" style="${!mk.completed?'opacity:.4;pointer-events:none;filter:grayscale(1)':''}">${paidText}</span>
       </div>
     </div>`});
   }
@@ -358,25 +353,37 @@ function rdv(){const c=D.getElementById('dayView'),tod=today(),dc=getForDate(cdd
   c.querySelectorAll('.day-card').forEach(card=>{card.addEventListener('click',function(e){if(!e.target.closest('.dc-chip'))oem(card.dataset.id)})});
   c.querySelectorAll('[data-action="toggleComplete"]').forEach(b=>{b.addEventListener('click',function(e){e.stopPropagation();tgm(b.closest('.day-card').dataset.id,b.closest('.day-card').dataset.date,'toggleComplete')})});
   c.querySelectorAll('[data-action="togglePaid"]').forEach(b=>{b.addEventListener('click',function(e){e.stopPropagation();tgm(b.closest('.day-card').dataset.id,b.closest('.day-card').dataset.date,'togglePaid')})});
-  c.querySelectorAll('[data-action="cycleAttendance"]').forEach(b=>{b.addEventListener('click',function(e){e.stopPropagation();tgm(b.closest('.day-card').dataset.id,b.closest('.day-card').dataset.date,'cycleAttendance')})});
+  c.querySelectorAll('[data-action="cycleStatus"]').forEach(b=>{b.addEventListener('click',function(e){e.stopPropagation();tgm(b.closest('.day-card').dataset.id,b.closest('.day-card').dataset.date,'cycleStatus')})});
   D.getElementById('btnDayPrev').addEventListener('click',function(){cdd=ad(cdd,-1);rdv()});
   D.getElementById('btnDayNext').addEventListener('click',function(){cdd=ad(cdd,1);rdv()});
 }
 const dcs=document.createElement('style');dcs.textContent='.day-card::before{background:var(--c)}';document.head.appendChild(dcs);
 
-// B4 attendance toggle: undefined → present → leave → absent → undefined
-function cycleAttendance(mk){const seq=[null,'present','leave','absent'];const cur=mk.a||null;const idx=seq.indexOf(cur);return seq[(idx+1)%seq.length]}
+// Status cycle: 未上课 → 已上课 → 不上课 → 未上课
+function nextStatus(mk){
+  if(!mk.completed&&!mk.skipped)return {completed:true,skipped:false};
+  if(mk.completed)return {completed:false,skipped:true};
+  return {completed:false,skipped:false};
+}
 
 function tgm(cid,d,action){
   const c=courses.find(function(x){return x.id===cid});if(!c)return;const now=new Date();
   const ep=c.endTime.split(':');const ed=new Date(d+'T00:00:00');ed.setHours(+ep[0],+ep[1],0,0);
-  if(!c.marks)c.marks={};if(!c.marks[d])c.marks[d]={completed:false,paid:false,a:null};
+  if(!c.marks)c.marks={};if(!c.marks[d])c.marks[d]={completed:false,paid:false,skipped:false};
   const mk=c.marks[d];
-  if(action==='cycleAttendance'){mk.a=cycleAttendance(mk);if(mk.a==='present'&&ed<=now)mk.completed=true;S(KC,courses);rdv();rsc();return}
-  if(action==='togglePaid'){if(!canEdit)return;mk.paid=!mk.paid;S(KC,courses);rdv();toast('课费标记已更新');return}
-  if(action==='toggleComplete'){if(now<=ed){toast('课程尚未结束');return}mk.completed=!mk.completed;if(mk.completed&&isAutoPaid(c,d))mk.paid=true;S(KC,courses);rdv();rsc();toast('标记已更新');return}
+  if(action==='cycleStatus'){
+    if(now<=ed){toast('课程尚未结束');return}
+    const ns=nextStatus(mk);mk.completed=ns.completed;mk.skipped=ns.skipped;
+    if(!mk.completed)mk.paid=false;
+    else if(isAutoPaid(c,d))mk.paid=true;
+    S(KC,courses);rdv();rsc();toast(ns.skipped?'标记为不上课':(ns.completed?'标记为已上课':'标记为未上课'));return;
+  }
+  if(action==='togglePaid'){
+    if(!mk.completed){toast('仅已上课的课程可修改收费');return}
+    if(now<=ed){toast('课程尚未结束');return}
+    mk.paid=!mk.paid;S(KC,courses);rdv();toast(mk.paid?'标记为已收':'标记为未收');return;
+  }
 }
-const canEdit=true;
 
 function unw(){D.getElementById('weekInfo').textContent=md(cws)+' - '+md(ad(cws,6))}
 function gw(d){cws=ad(cws,d*7);unw();if(cv==='week')rwv();else{cdd=ad(cdd,d*7);rdv()}}
