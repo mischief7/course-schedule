@@ -130,6 +130,10 @@ input:focus,select:focus{outline:none}
 .form-group input:focus,.form-group select:focus{border-color:var(--accent)}
 .form-group input[type=number]{-moz-appearance:textfield}
 .form-group input[type=number]::-webkit-outer-spin-button,.form-group input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.form-group input[type=time]{min-height:44px}
+.form-group input[type=time]::-webkit-calendar-picker-indicator{filter:invert(.5)}
+.form-group input[type=date]{min-height:44px}
+.form-group input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5)}
 .form-row{display:flex;gap:10px}
 .form-row .form-group{flex:1}
 .form-hint{font-size:10px;color:var(--text2);margin-top:3px}
@@ -244,11 +248,11 @@ input:focus,select:focus{outline:none}
       <div class="form-row">
         <div class="form-group">
           <label>开始时间 <span class="required-star">*</span></label>
-          <select id="cStart"></select>
+          <input type="time" id="cStart" step="300" value="09:00">
         </div>
         <div class="form-group">
           <label>结束时间 <span class="required-star">*</span></label>
-          <select id="cEnd"></select>
+          <input type="time" id="cEnd" step="300" value="10:00">
         </div>
       </div>
       <div class="repeat-row">
@@ -718,17 +722,12 @@ function updateColorPicker(){
 }
 
 // ============================================================
-//  TIME SELECTORS (5-minute steps, 6:00-22:00)
+//  TIME INPUTS (input[type=time] with 5-min step, set in HTML)
 // ============================================================
-function populateTimeSelectors(){
-  const times=[];
-  for(let h=6;h<22;h++){for(let m=0;m<60;m+=5){times.push(String(h).padStart(2,'0')+':'+String(m).padStart(2,'0'))}}
-  times.push('22:00');
-  const opts=times.map(t=>`<option value="${t}">${t}</option>`).join('');
-  document.getElementById('cStart').innerHTML=opts;
-  document.getElementById('cEnd').innerHTML=opts;
-  document.getElementById('cStart').value='09:00';
-  document.getElementById('cEnd').value='10:00';
+function ensureTimeInputs(){
+  const s=document.getElementById('cStart'),e=document.getElementById('cEnd');
+  if(s&&!s.value)s.value='09:00';
+  if(e&&!e.value)e.value='10:00';
 }
 
 // ============================================================
@@ -779,7 +778,7 @@ function toast(msg){const c=document.getElementById('toastContainer');const t=do
   document.head.appendChild(link);
 })();
 if('serviceWorker' in navigator){
-  const swCode=`const CACHE='teacher-schedule-v3';self.addEventListener('install',e=>{self.skipWaiting()});self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).then(resp=>{if(resp.ok){const clone=resp.clone();caches.open(CACHE).then(c=>c.put(e.request,clone))}return resp}).catch(()=>caches.match(e.request))))});`;
+  const swCode=`const CACHE='teacher-schedule-v4';self.addEventListener('install',e=>{self.skipWaiting()});self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).then(resp=>{if(resp.ok){const clone=resp.clone();caches.open(CACHE).then(c=>c.put(e.request,clone))}return resp}).catch(()=>caches.match(e.request))))});`;
   const swBlob=new Blob([swCode],{type:'application/javascript'});
   navigator.serviceWorker.register(URL.createObjectURL(swBlob),{scope:'/'}).catch(()=>{});
 }
@@ -789,7 +788,7 @@ if('serviceWorker' in navigator){
 // ============================================================
 (function init(){
   try{
-    if(typeof populateTimeSelectors==='function')populateTimeSelectors();
+    if(typeof ensureTimeInputs==='function')ensureTimeInputs();
   }catch(e){}
   try{
     if(typeof updateColorPicker==='function')updateColorPicker();
