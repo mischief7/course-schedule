@@ -10,6 +10,9 @@
 <meta name="description" content="教师课程表">
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='36' fill='%234CAF50'/><text x='90' y='115' text-anchor='middle' font-size='100' font-family='sans-serif'>📅</text></svg>">
 <title>教师排课表</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <style>
 :root{
   --bg:#f5f5f7;--surface:#fff;--text:#1d1d1f;--text2:#6e6e73;--text3:#aeaeb2;
@@ -706,8 +709,8 @@ D.getElementById('btnInstall').addEventListener('click',function(){if(dip){dip.p
 window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();dip=e;D.getElementById('installBanner').style.display='flex'});
 
 // PWA
-(function(){const m={name:'课程表',short_name:'课程表',start_url:location.href,display:'standalone',orientation:'portrait',background_color:'#f5f5f7',theme_color:'#1d1d1f',icons:[{src:'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="40" fill="#4CAF50"/><text x="96" y="124" text-anchor="middle" font-size="110" font-family="sans-serif">📅</text></svg>'),sizes:'192x192',type:'image/svg+xml'}]};document.head.appendChild((function(){const l=document.createElement('link');l.rel='manifest';l.href=URL.createObjectURL(new Blob([JSON.stringify(m)],{type:'application/json'}));return l})());}());
-if('serviceWorker' in navigator){const sw="const C='schedule-v7';self.addEventListener('install',function(e){self.skipWaiting()});self.addEventListener('activate',function(e){e.waitUntil(caches.keys().then(function(k){return Promise.all(k.filter(function(x){return x!==C}).map(function(x){return caches.delete(x)}))}).then(function(){return self.clients.claim()}))});self.addEventListener('fetch',function(e){e.respondWith(caches.match(e.request).then(function(r){return r||fetch(e.request).then(function(resp){if(resp.ok){var o=resp.clone();caches.open(C).then(function(c){c.put(e.request,o)})}return resp}).catch(function(){return caches.match(e.request)}))})});";navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'application/javascript'})),{scope:'/'}).catch(function(){});}
+(function(){const m={name:'教师排课表',short_name:'排课表',start_url:location.href+'?v='+Date.now(),display:'standalone',orientation:'portrait',background_color:'#f5f5f7',theme_color:'#1d1d1f',icons:[{src:'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="40" fill="#4CAF50"/><text x="96" y="124" text-anchor="middle" font-size="110" font-family="sans-serif">📅</text></svg>'),sizes:'192x192',type:'image/svg+xml'}]};document.head.appendChild((function(){const l=document.createElement('link');l.rel='manifest';l.href=URL.createObjectURL(new Blob([JSON.stringify(m)],{type:'application/json'}));return l})());}());
+if('serviceWorker' in navigator){const sw="const C='schedule-v8';self.addEventListener('install',function(e){self.skipWaiting()});self.addEventListener('activate',function(e){e.waitUntil(caches.keys().then(function(k){return Promise.all(k.filter(function(x){return x!==C}).map(function(x){return caches.delete(x)}))}).then(function(){return self.clients.claim()}))});self.addEventListener('fetch',function(e){e.respondWith(caches.match(e.request).then(function(r){return r||fetch(e.request).then(function(resp){if(resp.ok){var o=resp.clone();caches.open(C).then(function(c){c.put(e.request,o)})}return resp}).catch(function(){return caches.match(e.request)}))})});";navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'application/javascript'})),{scope:'/'}).catch(function(){});}
 
 (function init(){
   // Migrate old prepaid to prepaidEntries array
