@@ -66,13 +66,15 @@ input[type=time],input[type=date]{min-height:44px}
 .day-label{background:var(--surface);text-align:center;padding:6px 2px;font-size:10px;font-weight:600;border-bottom:2px solid var(--border);line-height:1.3}
 .day-label span{display:block;font-size:9px;color:var(--text2);font-weight:400}
 .day-label.today{border-bottom-color:var(--accent);color:var(--accent)}.day-label.today span{color:var(--accent)}
-.time-label{font-size:8px;color:var(--text3);text-align:right;padding:0 3px 0 0;height:6px;line-height:6px}
-.day-col{position:relative;min-height:6px}
-.course-block{position:absolute;left:1px;right:1px;border-radius:4px;padding:2px 3px;font-size:9px;line-height:1.2;overflow:hidden;cursor:pointer;color:#fff;font-weight:600;z-index:2;border-left:2px solid rgba(255,255,255,.3)}
-.course-block.warn{border:1.5px dashed #ff9500;box-shadow:0 0 6px rgba(255,149,0,.4)}
+.time-label{font-size:9px;color:var(--text3);text-align:right;padding:0 3px 0 0;height:18px;line-height:18px;font-weight:600}
+.day-col{position:relative;min-height:18px}
+.course-block{position:absolute;left:1px;right:1px;border-radius:4px;padding:1px 3px;font-size:9px;line-height:1.15;overflow:hidden;cursor:pointer;color:#fff;font-weight:600;z-index:2;border-left:2px solid rgba(255,255,255,.3);display:flex;flex-direction:column;justify-content:flex-start}
+.course-block.warn{box-shadow:0 0 0 1.5px #ff9500,0 0 6px rgba(255,149,0,.4)}
 .course-block:active{transform:scale(.97)}
-.course-block .c-name{font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.course-block .c-detail{font-size:7px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.course-block .cb-row{flex-shrink:0}
+.course-block .cb-name{font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.1}
+.course-block .cb-meta{font-size:8px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.1;margin-top:1px}
+.course-block .cb-status{font-size:7px;opacity:.95;line-height:1;margin-top:auto;display:flex;gap:2px}
 
 #dayView{padding:8px 12px 20px}
 .day-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
@@ -83,14 +85,14 @@ input[type=time],input[type=date]{min-height:44px}
 .day-card .dc-time{font-size:14px;font-weight:700;margin-bottom:4px}
 .day-card .dc-name{font-size:16px;font-weight:600;margin-bottom:3px}
 .day-card .dc-info{font-size:12px;color:var(--text2);margin-bottom:1px}
-.day-card .dc-tuition{font-size:12px;font-weight:600;color:#e65100}
-.day-card .dc-badges{position:absolute;right:8px;top:8px;display:flex;gap:4px;flex-direction:column;align-items:flex-end}
-.day-card .dc-badge{font-size:10px;padding:2px 8px;border-radius:8px;font-weight:700;cursor:pointer}
-.day-card .dc-badge.green{background:#e8f5e9;color:#2e7d32}
-.day-card .dc-badge.red{background:#fce4ec;color:#c62828}
-.day-card .dc-badge.orange{background:#fff3e0;color:#e65100}
-.day-card .dc-badge.blue{background:#e3f2fd;color:#1565c0}
-.day-card .dc-badge.gray{background:var(--border);color:var(--text2)}
+.day-card .dc-tuition{font-size:12px;font-weight:600;color:#e65100;margin-bottom:6px}
+.day-card .dc-status{display:flex;gap:6px;flex-wrap:wrap;padding-top:8px;border-top:1px solid var(--border);margin-top:6px}
+.day-card .dc-chip{font-size:11px;padding:3px 10px;border-radius:12px;cursor:pointer;font-weight:600;display:inline-flex;align-items:center;gap:3px}
+.day-card .dc-chip.green{background:#e8f5e9;color:#2e7d32}
+.day-card .dc-chip.red{background:#fce4ec;color:#c62828}
+.day-card .dc-chip.orange{background:#fff3e0;color:#e65100}
+.day-card .dc-chip.blue{background:#e3f2fd;color:#1565c0}
+.day-card .dc-chip.gray{background:var(--border);color:var(--text2)}
 .day-card .dc-mark{font-size:11px;padding:2px 8px;border-radius:10px;background:var(--bg);display:flex;align-items:center;gap:3px;cursor:pointer}
 .day-card .dc-mark.done{background:#e8f5e9;color:#2e7d32}
 .day-card .dc-mark.warn{background:#fff3e0;color:#e65100;animation:pulse 1.5s infinite}
@@ -276,22 +278,39 @@ function rsc(){
 window.cddScroll=function(){document.querySelector('.main-content').scrollTo({top:0,behavior:'smooth'})};
 
 function rwv(){const c=D.getElementById('weekView'),tod=today();const dates=[];for(let i=0;i<7;i++)dates.push(ad(cws,i));
+  // 30-min rows: 8:00-21:00 = 26 rows, each 18px = 468px
   let h='<div class="week-grid"><div class="time-label" style="grid-row:1"></div>';
   for(let i=0;i<7;i++){const cl=(dates[i]===tod)?'day-label today':'day-label';h+=`<div class="${cl}">${DN[i]}<span>${ms(dates[i])}</span></div>`}
-  for(let hh=8;hh<21;hh++)for(let m=0;m<60;m+=5){const row=(hh-8)*12+(m/5)+2,ts=String(hh).padStart(2,'0')+':'+String(m).padStart(2,'0');h+=`<div class="time-label" style="grid-row:${row}">${m===0?ts:''}</div>`;for(let d=0;d<7;d++)h+=`<div class="day-col" style="grid-row:${row}" data-date="${dates[d]}" data-time="${ts}"></div>`}
+  for(let hh=8;hh<21;hh++)for(let m=0;m<60;m+=30){
+    const row=(hh-8)*2+(m/30)+2,ts=String(hh).padStart(2,'0')+':'+String(m).padStart(2,'0');
+    h+=`<div class="time-label" style="grid-row:${row}">${m===0?ts:''}</div>`;
+    for(let d=0;d<7;d++)h+=`<div class="day-col" style="grid-row:${row}" data-date="${dates[d]}" data-time="${ts}"></div>`;
+  }
   h+='</div>';c.innerHTML=h;const grid=c.querySelector('.week-grid');const now=new Date();
-  for(let d=0;d<7;d++){const dc=getForDate(dates[d]);if(!dc.length)continue;const o=document.createElement('div');o.style.cssText='position:relative;grid-column:'+(d+2)+';grid-row:2/158;pointer-events:none;';
-    dc.forEach(co=>{const sm=tm(co.startTime)-480,em=tm(co.endTime)-480;const top=sm/5*6,ht=Math.max((em-sm)/5*6,10);
+  // overlay spans rows 2 to 28 (27 rows = 26 + 1) — using 30-min base, sub-30min blocks have fractional top via px
+  for(let d=0;d<7;d++){const dc=getForDate(dates[d]);if(!dc.length)continue;const o=document.createElement('div');o.style.cssText='position:relative;grid-column:'+(d+2)+';grid-row:2/28;pointer-events:none;';
+    dc.forEach(co=>{
+      const sm=tm(co.startTime)-480,em=tm(co.endTime)-480;
+      const top=sm/30*18,ht=Math.max((em-sm)/30*18,20);
       const mk=co.marks&&co.marks[dates[d]]?co.marks[dates[d]]:null;
       const endDt=new Date(dates[d]+'T00:00:00');endDt.setHours(+co.endTime.split(':')[0],+co.endTime.split(':')[1],0,0);
       const needed=(now>endDt&&(!mk||!mk.completed));
       const attendance=mk?mk.a:null;
+      const paid=mk?mk.paid:isAutoPaid(co,dates[d]);
       const bl=document.createElement('div');bl.className='course-block'+(needed?' warn':'');
       bl.style.cssText=`top:${top}px;height:${ht}px;background:${co.color};pointer-events:auto;`;
       const studentName=sn(co.studentId);
       const aIcon=attendance==='present'?'✅':attendance==='leave'?'📝':attendance==='absent'?'❌':'';
-      const mkIcons=(mk?(mk.completed?'✅':'')+(mk.paid?'💰':''):'');
-      bl.innerHTML=`<div class="c-name">${co.name} ${mkIcons}${aIcon?' '+aIcon:''}${needed?' ⚠':''}</div><div class="c-detail">${co.startTime}-${co.endTime} ${studentName}${co.location?' · '+co.location:''}</div>`;
+      let html='<div class="cb-row cb-name">'+co.name+(needed?' ⚠':'')+'</div>';
+      if(ht>=36)html+='<div class="cb-row cb-meta">'+co.startTime+'-'+co.endTime+' '+studentName+'</div>';
+      if(ht>=54){
+        html+='<div class="cb-row cb-status">';
+        if(mk&&mk.completed)html+='<span>✅</span>';
+        if(paid)html+='<span>💰</span>';
+        if(aIcon)html+='<span>'+aIcon+'</span>';
+        html+='</div>';
+      }
+      bl.innerHTML=html;
       bl.addEventListener('click',function(e){e.stopPropagation();oem(co.id)});o.appendChild(bl);
     });grid.appendChild(o);
   }
@@ -308,34 +327,31 @@ function rdv(){const c=D.getElementById('dayView'),tod=today(),dc=getForDate(cdd
     const needed=now>endDt&&!mk.completed;
     const paid=canEdit?mk.paid:isAutoPaid(co,cdd);
     const a=mk.a||null;
-    const aBadge=a==='present'?'<span class="dc-badge green">✅ 到课</span>':a==='leave'?'<span class="dc-badge blue">📝 请假</span>':a==='absent'?'<span class="dc-badge red">❌ 缺课</span>':'<span class="dc-badge gray">🟦 考勤</span>';
+    const aText=a==='present'?'✅ 已到':a==='leave'?'📝 请假':a==='absent'?'❌ 缺课':'🟦 考勤';
+    const aCls=a==='present'?'green':a==='leave'?'blue':a==='absent'?'red':'gray';
+    const completeText=mk.completed?'✅ 已上课':'⚠ 待上课';
+    const completeCls=mk.completed?'green':'orange';
+    const paidText=paid?'💰 已收':'🔴 未收';
+    const paidCls=paid?'green':'red';
     h+=`<div class="day-card${needed?' warn':''}" style="--c:${co.color}" data-id="${co.id}" data-date="${cdd}">
-      <div class="dc-badges">
-        ${aBadge}
-        <span class="dc-badge ${mk.completed?'green':'orange'}" data-action="toggleComplete">${mk.completed?'✅ 已完成':'⚠ 未完成'}</span>
-        <span class="dc-badge ${paid?'green':'red'}" data-action="togglePaid">${paid?'💰 已收':'🔴 未收'}</span>
-      </div>
       <div class="dc-time">${co.startTime} - ${co.endTime}</div>
       <div class="dc-name" style="color:${co.color}">${co.name}</div>
       ${snm?`<div class="dc-info">👤 ${snm}${co.location?' · 📍'+co.location:''}</div>`:''}
       ${onm?`<div class="dc-info">🏢 ${onm}</div>`:''}
       ${co.tuition?`<div class="dc-tuition">💰 ¥${co.tuition}</div>`:''}
       ${co.note?`<div class="dc-info">📌 ${co.note}</div>`:''}
+      <div class="dc-status">
+        <span class="dc-chip ${aCls}" data-action="cycleAttendance">${aText}</span>
+        <span class="dc-chip ${completeCls}" data-action="toggleComplete">${completeText}</span>
+        <span class="dc-chip ${paidCls}" data-action="togglePaid">${paidText}</span>
+      </div>
     </div>`});
   }
   c.innerHTML=h;
-  c.querySelectorAll('.day-card').forEach(card=>{card.addEventListener('click',function(e){if(!e.target.closest('.dc-badge'))oem(card.dataset.id)})});
+  c.querySelectorAll('.day-card').forEach(card=>{card.addEventListener('click',function(e){if(!e.target.closest('.dc-chip'))oem(card.dataset.id)})});
   c.querySelectorAll('[data-action="toggleComplete"]').forEach(b=>{b.addEventListener('click',function(e){e.stopPropagation();tgm(b.closest('.day-card').dataset.id,b.closest('.day-card').dataset.date,'toggleComplete')})});
   c.querySelectorAll('[data-action="togglePaid"]').forEach(b=>{b.addEventListener('click',function(e){e.stopPropagation();tgm(b.closest('.day-card').dataset.id,b.closest('.day-card').dataset.date,'togglePaid')})});
   c.querySelectorAll('[data-action="cycleAttendance"]').forEach(b=>{b.addEventListener('click',function(e){e.stopPropagation();tgm(b.closest('.day-card').dataset.id,b.closest('.day-card').dataset.date,'cycleAttendance')})});
-  // Attendance badge click via grey card
-  c.querySelectorAll('.day-card').forEach(card=>{
-    const ab=card.querySelector('.dc-badge.gray, .dc-badge.green[data-attend], .dc-badge.blue[data-attend], .dc-badge.red[data-attend]');
-  });
-  c.querySelectorAll('.day-card').forEach(card=>{
-    const firstBadge=card.querySelector('.dc-badges .dc-badge');
-    if(firstBadge)firstBadge.addEventListener('click',function(e){e.stopPropagation();tgm(card.dataset.id,card.dataset.date,'cycleAttendance')});
-  });
   D.getElementById('btnDayPrev').addEventListener('click',function(){cdd=ad(cdd,-1);rdv()});
   D.getElementById('btnDayNext').addEventListener('click',function(){cdd=ad(cdd,1);rdv()});
 }
