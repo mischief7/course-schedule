@@ -109,7 +109,7 @@ input[type=time],input[type=date]{min-height:44px}
 .day-empty{text-align:center;padding:80px 20px;color:var(--text3)}
 .day-empty .empty-icon{font-size:48px;margin-bottom:12px}
 
-.schedule-footer{display:flex;gap:10px;padding:8px 16px;background:var(--surface);border-top:1px solid var(--border);flex-shrink:0}
+.schedule-footer{display:flex;gap:6px;padding:8px 12px;background:var(--surface);border-top:1px solid var(--border);flex-shrink:0}
 .tab-bar{display:flex;background:var(--surface);border-top:1px solid var(--border);flex-shrink:0;padding-bottom:var(--safe-bottom)}
 .tab-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:5px 0 3px;font-size:9px;color:var(--text3);transition:color .15s}
 .tab-item .tab-icon{font-size:18px;margin-bottom:1px}
@@ -164,7 +164,7 @@ input[type=time],input[type=date]{min-height:44px}
 .color-dot{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid transparent}
 .color-dot.selected{border-color:var(--text);box-shadow:0 0 0 3px rgba(0,0,0,.1)}
 .btn-primary{flex:1;padding:12px;border-radius:var(--radius-sm);font-size:15px;font-weight:600;background:var(--accent);color:#fff;text-align:center}
-.btn-secondary{flex:1;padding:12px;border-radius:var(--radius-sm);font-size:15px;font-weight:600;background:var(--bg);color:var(--text);text-align:center}
+.btn-secondary{padding:12px;border-radius:var(--radius-sm);font-size:14px;font-weight:600;background:var(--bg);color:var(--text);text-align:center;flex-shrink:0}
 .btn-danger{color:var(--danger);font-weight:600;font-size:14px}
 .btn-save{padding:10px 28px;border-radius:var(--radius-sm);font-size:14px;font-weight:600;background:var(--accent);color:#fff}
 .toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#1d1d1d;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:200;white-space:nowrap;animation:toastIn .3s,toastOut .3s 2s forwards;pointer-events:none}
@@ -192,7 +192,7 @@ input[type=time],input[type=date]{min-height:44px}
     <div id="pageSalary" class="page"><div class="section-hd"><h3>💰 工资汇总</h3></div><div id="salaryContent"></div></div>
     <div id="pageSettings" class="page"><div style="padding:12px 16px"><div class="form-group"><label>课程表名称</label><input type="text" id="sName"></div><div class="form-group"><label>背景图（可选）</label><input type="file" id="bgFile" accept="image/*" style="padding:8px 0;border:none;background:none"><span class="hint" id="bgStatus"></span><button class="btn-sm-outline" id="btnRemoveBg" style="margin-top:4px;display:none">移除</button></div><button class="btn-primary" id="btnSaveSettingsCfg" style="width:100%;margin-bottom:20px">保存设置</button><h3 style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">数据管理</h3><div style="background:var(--bg);border-radius:var(--radius-sm);overflow:hidden;margin-bottom:10px"><button class="btn-primary" id="btnExportDataS" style="width:100%;background:var(--bg);color:var(--text);margin-bottom:1px;border-radius:0">📤 导出全部数据 (JSON)</button><button class="btn-primary" id="btnImportDataS" style="width:100%;background:var(--bg);color:var(--text);margin-bottom:1px;border-radius:0">📥 导入数据恢复 (JSON)</button><button class="btn-primary" id="btnClearAllS" style="width:100%;background:var(--bg);color:var(--danger);border-radius:0">🗑 清空所有数据</button></div><input type="file" id="importFile" accept=".json"></div></div>
   </main>
-  <div class="schedule-footer" id="scheduleFooter"><button class="btn-primary" id="btnAddCourse">+ 添加课程</button><button class="btn-secondary" id="btnExport">📥 导出日历</button></div>
+  <div class="schedule-footer" id="scheduleFooter"><button class="btn-primary" id="btnAddCourse">+ 添加课程</button><button class="btn-secondary" id="btnBatchAdd" style="font-size:13px">+ 批量</button><button class="btn-secondary" id="btnExport">📥 导出</button></div>
   <nav class="tab-bar" id="tabBar">
     <button class="tab-item active" data-tab="schedule"><span class="tab-icon">📅</span>课程表</button>
     <button class="tab-item" data-tab="students"><span class="tab-icon">👨‍🎓</span>学生</button>
@@ -211,6 +211,9 @@ input[type=time],input[type=date]{min-height:44px}
 <!-- ORG MODAL -->
 <div class="modal-overlay" id="orgModal" style="display:none"><div class="modal"><div class="modal-header"><h2 id="orgModalTitle">添加机构</h2><button class="btn-icon" id="btnCloseOrgModal">✕</button></div><div class="modal-body"><input type="hidden" id="orgId"><div class="form-group"><label>名称 <span class="req">*</span></label><input type="text" id="oNameI"></div><div class="form-row"><div class="form-group"><label>位置</label><input type="text" id="oLocation"></div><div class="form-group"><label>校区</label><input type="text" id="oCampus"></div></div></div><div class="modal-footer"><button class="btn-danger" id="btnDeleteOrg" style="display:none">删除机构</button><div style="flex:1"></div><button class="btn-secondary" id="btnCancelOrg">取消</button><button class="btn-save" id="btnSaveOrg">保存</button></div></div></div>
 
+<!-- BATCH ADD MODAL -->
+<div class="modal-overlay" id="batchModal" style="display:none"><div class="modal"><div class="modal-header"><h2>批量添加课程</h2><button class="btn-icon" id="btnCloseBatch">✕</button></div><div class="modal-body"><div class="form-group"><label>课程名称 <span class="req">*</span></label><input type="text" id="bcName" list="courseNamesList"></div><div class="form-row"><div class="form-group"><label>学生 <span class="req">*</span></label><select id="bcStudentId"></select></div><div class="form-group"><label>机构</label><select id="bcOrgId"><option value="">暂不选择</option></select></div></div><div class="form-row"><div class="form-group"><label>上课地点</label><input type="text" id="bcLocation"></div><div class="form-group"><label>课费 (RMB) <span class="req">*</span></label><input type="number" id="bcTuition" min="0" step="5"></div></div><div class="form-group"><label>颜色</label><div class="color-picker" id="bcColorPicker"></div><input type="hidden" id="bcColor" value="#4CAF50"></div><div class="form-group"><label>备注</label><input type="text" id="bcNote"></div><h3 style="font-size:13px;font-weight:700;margin:12px 0 8px">📅 上课时间 &#40;各填一行&#41;</h3><div id="batchSlots"><div class="form-row" data-bs="0"><div class="form-group"><label>日期</label><input type="date" class="bsDate"></div><div class="form-group"><label>开始</label><input type="time" class="bsStart" step="300"></div><div class="form-group"><label>结束</label><input type="time" class="bsEnd" step="300"></div><button class="btn-icon" onclick="this.closest('.form-row').remove()" style="width:30px;padding:0;align-self:flex-end;margin-bottom:12px;font-size:14px">✕</button></div></div><button class="btn-sm-outline" id="btnAddSlot" style="width:100%;font-size:12px;margin:4px 0 8px">＋ 添加一行时间</button></div><div class="modal-footer"><button class="btn-secondary" id="btnCancelBatch">取消</button><button class="btn-save" id="btnSaveBatch" style="flex:1">保存全部 (0节)</button></div></div></div>
+
 <!-- EXPORT MODAL -->
 <div class="modal-overlay" id="exportModal" style="display:none"><div class="modal"><div class="modal-header"><h2>导出学生课程</h2><button class="btn-icon" id="btnCloseExport">✕</button></div><div class="modal-body"><div class="form-row"><div class="form-group"><label>起始日期</label><input type="date" id="expStart"></div><div class="form-group"><label>结束日期</label><input type="date" id="expEnd"></div></div><div class="export-preview" id="exportPreview"></div></div><div class="modal-footer"><button class="btn-secondary" id="btnCopyExport">📋 复制</button><button class="btn-save" id="btnShareExport">📤 分享</button></div></div></div>
 
@@ -227,8 +230,7 @@ function G(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8
 
 // V4→V5 migration: just ensure marks has expected shape; older data auto-fills missing fields as needed
 let courses=L(KC,[]),students=L(KS,[]),orgs=L(KO,[]),config=L(KF,{scheduleName:'我的课程表',bgImage:''}),courseNames=L(KN,[]);
-// Migrate old prepaid format to prepaidEntries
-students=students.map(function(s){if(s.prepaidAmount&&!s.prepaidEntries){s.prepaidEntries=[{amount:s.prepaidAmount,date:s.prepaidDate||''}]}if(!s.prepaidEntries)s.prepaidEntries=[];return s});save(KS,students);
+// Migration will run in init() after functions defined
 
 function td(s){if(!s||typeof s!=='string')return new Date();const p=s.split('-');if(p.length!==3||isNaN(+p[0]))return new Date();return new Date(+p[0],+p[1]-1,+p[2])}
 function ds(d){d=d||new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
@@ -626,6 +628,25 @@ function updateCourseNameOptions(){const dl=D.getElementById('courseNamesList');
 
 // Course name library management
 function addCurrentCourseName(){const n=D.getElementById('cName').value.trim();if(!n){toast('请先输入课程名称');return}if(courseNames.indexOf(n)>=0){toast('已存在');return}courseNames.push(n);courseNames.sort();save(KN,courseNames);updateCourseNameOptions();toast('已存为常用课程名')}
+
+function openBatchModal(){
+  D.getElementById('bcName').value='';D.getElementById('bcLocation').value='';D.getElementById('bcTuition').value='';D.getElementById('bcNote').value='';D.getElementById('bcColor').value='#4CAF50';
+  D.getElementById('bcStudentId').innerHTML='<option value="">请选择</option>'+students.map(function(s){return'<option value="'+s.id+'">'+s.name+'</option>'}).join('');
+  D.getElementById('bcOrgId').innerHTML='<option value="">暂不选择</option>'+orgs.map(function(o){return'<option value="'+o.id+'">'+o.name+(o.campus?' - '+o.campus:'')+'</option>'}).join('');
+  D.getElementById('bcStudentId').value='';D.getElementById('bcOrgId').value='';
+  const bp=D.getElementById('bcColorPicker');bp.innerHTML=DC.map(function(c){return'<div class="color-dot'+(c==='#4CAF50'?' selected':'')+'" style="background:'+c+'" data-color="'+c+'"></div>'}).join('');
+  bp.querySelectorAll('.color-dot').forEach(function(d){d.addEventListener('click',function(){D.getElementById('bcColor').value=d.dataset.color;bp.querySelectorAll('.color-dot').forEach(function(x){x.classList.toggle('selected',x===d)})})});
+  D.getElementById('batchSlots').innerHTML='<div class="form-row" data-bs="0"><div class="form-group"><label>日期</label><input type="date" class="bsDate" value="'+today()+'"></div><div class="form-group"><label>开始</label><input type="time" class="bsStart" step="300" value="09:00"></div><div class="form-group"><label>结束</label><input type="time" class="bsEnd" step="300" value="10:00"></div><button class="btn-icon" onclick="this.closest(\'.form-row\').remove()" style="width:30px;padding:0;align-self:flex-end;margin-bottom:12px;font-size:14px">✕</button></div>';
+  D.getElementById('batchModal').style.display='flex';
+}
+function saveBatch(){
+  const n=D.getElementById('bcName').value.trim();if(!n){toast('请输入课程名称');return}
+  const sid=D.getElementById('bcStudentId').value;if(!sid){toast('请选择学生');return}
+  const t=parseFloat(D.getElementById('bcTuition').value);if(isNaN(t)||t<0){toast('请输入课费');return}
+  const rows=D.getElementById('batchSlots').querySelectorAll('.form-row[data-bs]');let s=0,dups=0;
+  rows.forEach(function(r){const d=r.querySelector('.bsDate').value,st=r.querySelector('.bsStart').value,et=r.querySelector('.bsEnd').value;if(d&&st&&et){const dup=courses.some(function(x){return x.date===d&&x.startTime===st&&x.studentId===sid});if(!dup){courses.push({id:G(),name:n,studentId:sid,location:D.getElementById('bcLocation').value.trim()||'',organizationId:D.getElementById('bcOrgId').value,tuition:t,date:d,startTime:st,endTime:et,color:D.getElementById('bcColor').value,repeat:'none',repeatUntil:'',note:D.getElementById('bcNote').value.trim(),marks:{}});s++}else dups++}});
+  if(!s){toast('无有效课程行'+(dups?' ('+dups+'行重复)':''));return}S(KC,courses);D.getElementById('batchModal').style.display='none';if(cv==='week')rwv();else rdv();rsc();toast('批量添加了 '+s+' 节课'+(dups?' ('+dups+'行跳过)':''));
+}
 function ccm(){D.getElementById('courseModal').style.display='none'}
 function svc(){
   const n=D.getElementById('cName').value.trim();if(!n){toast('请输入课程名称');return}
@@ -667,7 +688,13 @@ D.getElementById('btnAddCourse').addEventListener('click',function(){oam(today()
 D.getElementById('btnExport').addEventListener('click',eicsfn);
 D.querySelectorAll('#viewToggle button').forEach(function(b){b.addEventListener('click',function(){swv(b.dataset.view)})});
 D.getElementById('btnCloseModal').addEventListener('click',ccm);D.getElementById('btnCancel').addEventListener('click',ccm);D.getElementById('btnSave').addEventListener('click',svc);D.getElementById('btnDelete').addEventListener('click',dc);D.getElementById('courseModal').addEventListener('click',function(e){if(e.target===this)ccm()});
-D.getElementById('btnAddCourseName').addEventListener('click',addCurrentCourseName);D.getElementById('cRepeat').addEventListener('change',function(){const v=this.value;const show=v==='weekly'||v==='daily';D.getElementById('repeatUntilGroup').style.display=show?'block':'none';D.getElementById('repeatHint').textContent=v==='daily'?'从上课日期起每天重复至截止日期':'从上课日期起每周同一天重复至截止日期'});
+D.getElementById('btnAddCourseName').addEventListener('click',addCurrentCourseName);
+D.getElementById('btnBatchAdd').addEventListener('click',openBatchModal);
+D.getElementById('btnCloseBatch').addEventListener('click',function(){D.getElementById('batchModal').style.display='none'});
+D.getElementById('btnCancelBatch').addEventListener('click',function(){D.getElementById('batchModal').style.display='none'});
+D.getElementById('batchModal').addEventListener('click',function(e){if(e.target===this)D.getElementById('batchModal').style.display='none'});
+D.getElementById('btnSaveBatch').addEventListener('click',saveBatch);
+D.getElementById('btnAddSlot').addEventListener('click',function(){const c=D.getElementById('batchSlots'),n=c.children.length;c.innerHTML+='<div class="form-row" data-bs="'+n+'"><div class="form-group"><label>日期</label><input type="date" class="bsDate" value="'+today()+'"></div><div class="form-group"><label>开始</label><input type="time" class="bsStart" step="300" value="09:00"></div><div class="form-group"><label>结束</label><input type="time" class="bsEnd" step="300" value="10:00"></div><button class="btn-icon" onclick="this.closest(\'.form-row\').remove()" style="width:30px;padding:0;align-self:flex-end;margin-bottom:12px;font-size:14px">✕</button></div>';});D.getElementById('cRepeat').addEventListener('change',function(){const v=this.value;const show=v==='weekly'||v==='daily';D.getElementById('repeatUntilGroup').style.display=show?'block':'none';D.getElementById('repeatHint').textContent=v==='daily'?'从上课日期起每天重复至截止日期':'从上课日期起每周同一天重复至截止日期'});
 D.getElementById('btnAddStudent').addEventListener('click',function(){osm(null)});D.getElementById('btnStudentBack').addEventListener('click',function(){D.getElementById('studentDetail').style.display='none';D.getElementById('studentList').style.display='block'});D.getElementById('btnStudentEdit').addEventListener('click',function(){osm(exid)});D.getElementById('btnStudentExport').addEventListener('click',function(){oex(exid)});D.getElementById('btnCloseStudentModal').addEventListener('click',function(){D.getElementById('studentModal').style.display='none'});D.getElementById('btnCancelStudent').addEventListener('click',function(){D.getElementById('studentModal').style.display='none'});D.getElementById('btnSaveStudent').addEventListener('click',sst);D.getElementById('btnDeleteStudent').addEventListener('click',dst);D.getElementById('studentModal').addEventListener('click',function(e){if(e.target===this)D.getElementById('studentModal').style.display='none'});D.getElementById('studentSearch').addEventListener('input',function(){rsl(this.value)});D.getElementById('sPaymentMode').addEventListener('change',function(){D.getElementById('sPrepaidGroup').style.display=this.value==='prepaid'?'block':'none'});D.getElementById('sType').addEventListener('change',function(){const it=this.value==='individual';D.getElementById('sOrgGroup').style.display=it?'none':'block';D.getElementById('sLocationGroup').style.display=it?'block':'none';D.getElementById('sOrgId').disabled=it;if(it)D.getElementById('sOrgId').value=''});
 D.getElementById('btnAddPrepaid').addEventListener('click',function(){const c=D.getElementById('sPrepaidEntries');c.innerHTML+=prepaidRowHTML({amount:0,date:today()},c.children.length)});
 D.getElementById('btnAddOrg').addEventListener('click',function(){oom(null)});D.getElementById('btnOrgBack').addEventListener('click',function(){D.getElementById('orgDetail').style.display='none';D.getElementById('orgList').style.display='block'});D.getElementById('btnOrgEdit').addEventListener('click',function(){oom(D.getElementById('orgDetailContent').dataset.oid)});D.getElementById('btnCloseOrgModal').addEventListener('click',function(){D.getElementById('orgModal').style.display='none'});D.getElementById('btnCancelOrg').addEventListener('click',function(){D.getElementById('orgModal').style.display='none'});D.getElementById('btnSaveOrg').addEventListener('click',sot);D.getElementById('btnDeleteOrg').addEventListener('click',dot);D.getElementById('orgModal').addEventListener('click',function(e){if(e.target===this)D.getElementById('orgModal').style.display='none'});D.getElementById('orgSearch').addEventListener('input',function(){rol(this.value)});
@@ -680,7 +707,10 @@ window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();dip
 (function(){const m={name:'课程表',short_name:'课程表',start_url:location.href,display:'standalone',orientation:'portrait',background_color:'#f5f5f7',theme_color:'#1d1d1f',icons:[{src:'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="40" fill="#4CAF50"/><text x="96" y="124" text-anchor="middle" font-size="110" font-family="sans-serif">📅</text></svg>'),sizes:'192x192',type:'image/svg+xml'}]};document.head.appendChild((function(){const l=document.createElement('link');l.rel='manifest';l.href=URL.createObjectURL(new Blob([JSON.stringify(m)],{type:'application/json'}));return l})());}());
 if('serviceWorker' in navigator){const sw="const C='schedule-v7';self.addEventListener('install',function(e){self.skipWaiting()});self.addEventListener('activate',function(e){e.waitUntil(caches.keys().then(function(k){return Promise.all(k.filter(function(x){return x!==C}).map(function(x){return caches.delete(x)}))}).then(function(){return self.clients.claim()}))});self.addEventListener('fetch',function(e){e.respondWith(caches.match(e.request).then(function(r){return r||fetch(e.request).then(function(resp){if(resp.ok){var o=resp.clone();caches.open(C).then(function(c){c.put(e.request,o)})}return resp}).catch(function(){return caches.match(e.request)}))})});";navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'application/javascript'})),{scope:'/'}).catch(function(){});}
 
-(function init(){if(config.bgImage)document.body.style.backgroundImage='url('+config.bgImage+')';unw();rsc();rwv();setupStudentSelectListener();}());
+(function init(){
+  // Migrate old prepaid to prepaidEntries array
+  students=students.map(function(s){if(s.prepaidAmount&&!s.prepaidEntries){s.prepaidEntries=[{amount:s.prepaidAmount,date:s.prepaidDate||''}]}if(!s.prepaidEntries)s.prepaidEntries=[];return s});S(KS,students);
+  if(config.bgImage)document.body.style.backgroundImage='url('+config.bgImage+')';unw();rsc();rwv();setupStudentSelectListener();}());
 </script>
 </body>
 </html>
