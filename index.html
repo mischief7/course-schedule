@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="课程表">
+<meta name="theme-color" content="#1d1d1f">
+<meta name="description" content="个人课程表 - 周视图/日视图，一键导出iOS日历提醒">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='36' fill='%234CAF50'/><text x='90' y='115' text-anchor='middle' font-size='100' font-family='sans-serif'>📅</text></svg>">
+<title>课程表</title>
+<style>
+/* ========== CSS Variables ========== */
+:root {
+  --bg: #f5f5f7;
+  --surface: #ffffff;
+  --text: #1d1d1f;
+  --text2: #6e6e73;
+  --text3: #aeaeb2;
+  --border: #e5e5ea;
+  --accent: #4CAF50;
+  --accent-hover: #43a047;
+  --danger: #ff3b30;
+  --shadow: 0 2px 12px rgba(0,0,0,.08);
+  --radius: 14px;
+  --radius-sm: 10px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --header-h: 52px;
+  --nav-h: 44px;
+  --footer-h: 56px;
+  --course-1: #4CAF50;
+  --course-2: #2196F3;
+  --course-3: #FF9800;
+  --course-4: #E91E63;
+  --course-5: #9C27B0;
+  --course-6: #00BCD4;
+  --course-7: #FF5722;
+  --course-8: #607D8B;
+  --course-9: #795548;
+  --course-10: #3F51B5;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{height:100%;overflow:hidden}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;
+  background:var(--bg);color:var(--text);height:100%;overflow:hidden;
+  -webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;
+  -webkit-user-select:none;user-select:none;
+}
+button{font-family:inherit;border:none;cursor:pointer;background:none;color:inherit;font-size:inherit}
+input,select{font-family:inherit;font-size:16px;color:var(--text);-webkit-appearance:none;appearance:none}
+input:focus,select:focus{outline:none}
+
+/* ========== App Shell ========== */
+#app{
+  display:flex;flex-direction:column;height:100%;
+  max-width:600px;margin:0 auto;position:relative;
+}
+
+/* ========== Header ========== */
+.header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:calc(var(--safe-top) + 6px) 16px 6px;
+  background:var(--surface);border-bottom:1px solid var(--border);
+  flex-shrink:0;z-index:10;
+}
+.header h1{font-size:18px;font-weight:700}
+.header-actions{display:flex;gap:4px}
+.btn-icon{
+  width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:18px;transition:background .15s;
+}
+.btn-icon:active{background:var(--border)}
+
+/* ========== Week Navigator ========== */
+.week-nav{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:8px 16px;background:var(--surface);flex-shrink:0;
+  border-bottom:1px solid var(--border);
+}
+.week-nav-btn{
+  width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:14px;background:var(--bg);transition:background .15s;
+}
+.week-nav-btn:active{background:var(--border)}
+.week-nav-info{font-size:13px;font-weight:600;text-align:center;min-width:140px;line-height:1.3}
+.week-nav-info span{display:block;font-size:11px;color:var(--text2);font-weight:400}
+.btn-today{font-size:11px;padding:4px 10px;border-radius:12px;background:var(--accent);color:#fff;font-weight:600}
+
+/* ========== View Toggle ========== */
+.view-toggle{
+  display:flex;gap:4px;background:var(--bg);border-radius:10px;padding:3px;
+}
+.view-toggle button{
+  padding:6px 14px;border-radius:8px;font-size:13px;font-weight:600;
+  color:var(--text2);transition:all .2s;
+}
+.view-toggle button.active{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+
+/* ========== Main Content ========== */
+.main-content{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+
+/* ========== Week View ========== */
+#weekView{padding:4px 4px 80px;display:none}
+#weekView.active{display:block}
+.week-grid{display:grid;grid-template-columns:44px repeat(7,1fr);min-width:100%}
+.week-grid-header{
+  position:sticky;top:0;z-index:5;display:contents;
+}
+.week-grid-header .time-label{background:var(--bg)}
+.week-grid-header .day-label{
+  background:var(--surface);text-align:center;padding:8px 2px;font-size:11px;font-weight:600;
+  border-bottom:2px solid var(--border);
+}
+.week-grid-header .day-label.today{border-bottom-color:var(--accent);color:var(--accent)}
+.time-col{position:relative}
+.time-label{
+  font-size:9px;color:var(--text3);text-align:right;padding:0 4px 0 0;
+  height:36px;line-height:10px;border-top:1px solid var(--border);
+}
+.day-col{position:relative;border-left:1px solid var(--border);min-height:936px}
+.course-block{
+  position:absolute;left:1px;right:1px;border-radius:6px;padding:3px 4px;
+  font-size:10px;line-height:1.25;overflow:hidden;cursor:pointer;
+  color:#fff;font-weight:600;z-index:2;transition:transform .1s,box-shadow .1s;
+  border-left:3px solid rgba(255,255,255,.3);
+}
+.course-block:active{transform:scale(.97);box-shadow:0 4px 12px rgba(0,0,0,.3)}
+.course-block .c-name{font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.course-block .c-detail{font-size:8px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ========== Day View ========== */
+#dayView{padding:8px 12px 80px;display:none}
+#dayView.active{display:block}
+.day-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.day-header h2{font-size:17px;font-weight:700}
+.day-nav{display:flex;gap:4px}
+.day-card{
+  background:var(--surface);border-radius:var(--radius);padding:14px;margin-bottom:10px;
+  box-shadow:var(--shadow);cursor:pointer;position:relative;overflow:hidden;
+}
+.day-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px}
+.day-card .dc-time{font-size:14px;font-weight:700;margin-bottom:4px}
+.day-card .dc-name{font-size:16px;font-weight:600;margin-bottom:3px}
+.day-card .dc-info{font-size:12px;color:var(--text2)}
+.day-empty{text-align:center;padding:60px 20px;color:var(--text3)}
+.day-empty .empty-icon{font-size:48px;margin-bottom:12px}
+
+/* ========== Footer ========== */
+.footer{
+  display:flex;gap:10px;padding:10px 16px calc(10px + var(--safe-bottom));
+  background:var(--surface);border-top:1px solid var(--border);flex-shrink:0;
+}
+.btn-primary{
+  flex:1;padding:12px;border-radius:var(--radius-sm);font-size:15px;font-weight:600;
+  background:var(--accent);color:#fff;text-align:center;transition:background .15s;
+}
+.btn-primary:active{background:var(--accent-hover)}
+.btn-secondary{
+  flex:1;padding:12px;border-radius:var(--radius-sm);font-size:15px;font-weight:600;
+  background:var(--bg);color:var(--text);text-align:center;transition:background .15s;
+}
+.btn-secondary:active{background:var(--border)}
+
+/* ========== Modal ========== */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;
+  display:flex;align-items:flex-end;justify-content:center;
+  animation:fadeIn .2s;
+}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{
+  background:var(--surface);width:100%;max-width:600px;max-height:90vh;
+  border-radius:20px 20px 0 0;display:flex;flex-direction:column;
+  animation:slideUp .25s;padding-bottom:var(--safe-bottom);
+}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 20px;border-bottom:1px solid var(--border);
+}
+.modal-header h2{font-size:17px;font-weight:700}
+.modal-body{flex:1;overflow-y:auto;padding:16px 20px}
+.modal-footer{
+  display:flex;gap:10px;padding:12px 20px;border-top:1px solid var(--border);
+}
+.modal-footer .btn-danger{color:var(--danger);font-weight:600;font-size:14px}
+
+/* ========== Form ========== */
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px}
+.form-group input,.form-group select{
+  width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);
+  background:var(--bg);transition:border .15s;
+}
+.form-group input:focus,.form-group select:focus{border-color:var(--accent)}
+.form-row{display:flex;gap:10px}
+.form-row .form-group{flex:1}
+
+/* Color Picker */
+.color-picker{display:flex;gap:8px;flex-wrap:wrap}
+.color-dot{
+  width:30px;height:30px;border-radius:50%;cursor:pointer;transition:transform .15s,box-shadow .15s;
+  border:2px solid transparent;
+}
+.color-dot:active{transform:scale(.9)}
+.color-dot.selected{border-color:var(--text);box-shadow:0 0 0 3px rgba(0,0,0,.1)}
+
+/* ========== Settings ========== */
+.settings-section{margin-bottom:20px}
+.settings-section h3{font-size:13px;font-weight:700;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
+.settings-card{
+  background:var(--bg);border-radius:var(--radius-sm);overflow:hidden;
+}
+.settings-item{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px;border-bottom:1px solid var(--border);
+  font-size:14px;
+}
+.settings-item:last-child{border-bottom:none}
+.settings-item .si-right{color:var(--text2);font-size:13px}
+.settings-item button{color:var(--danger);font-weight:600;font-size:14px}
+.settings-item .btn-data{color:var(--accent);font-weight:600;font-size:14px}
+
+/* ========== Toast ========== */
+.toast{
+  position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
+  background:#1d1d1f;color:#fff;padding:10px 20px;border-radius:20px;
+  font-size:13px;font-weight:600;z-index:200;white-space:nowrap;
+  animation:toastIn .3s,toastOut .3s 2s forwards;
+  pointer-events:none;
+}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes toastOut{from{opacity:1}to{opacity:0}}
+
+/* ========== Install Banner ========== */
+.install-banner{
+  position:fixed;bottom:90px;left:16px;right:16px;z-index:90;
+  background:var(--surface);border-radius:var(--radius);padding:14px 18px;
+  box-shadow:0 4px 24px rgba(0,0,0,.15);display:flex;align-items:center;gap:12px;
+  animation:slideUp .3s;
+}
+.install-banner .ib-text{flex:1;font-size:13px;font-weight:600}
+.install-banner .ib-btn{
+  padding:8px 16px;border-radius:16px;background:var(--accent);color:#fff;
+  font-size:13px;font-weight:600;
+}
+
+/* ========== File Input Hidden ========== */
+#importFile{display:none}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- Header -->
+  <header class="header">
+    <h1>📅 课程表</h1>
+    <div class="header-actions">
+      <div class="view-toggle" id="viewToggle">
+        <button data-view="week" class="active">周</button>
+        <button data-view="day">日</button>
+      </div>
+      <button class="btn-icon" id="btnSettings" title="设置">⚙</button>
+    </div>
+  </header>
+
+  <!-- Week Navigator -->
+  <nav class="week-nav" id="weekNav">
+    <button class="week-nav-btn" id="btnPrevWeek">◀</button>
+    <div class="week-nav-info" id="weekInfo">
+      第1周<span>2/24 - 3/2</span>
+    </div>
+    <button class="week-nav-btn" id="btnNextWeek">▶</button>
+    <button class="btn-today" id="btnToday">今天</button>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content" id="mainContent">
+    <!-- Week View -->
+    <div id="weekView" class="active"></div>
+    <!-- Day View -->
+    <div id="dayView"></div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <button class="btn-primary" id="btnAddCourse">+ 添加课程</button>
+    <button class="btn-secondary" id="btnExport">📥 导出日历</button>
+  </footer>
+</div>
+
+<!-- Course Edit Modal (hidden by default) -->
+<div class="modal-overlay" id="courseModal" style="display:none">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modalTitle">添加课程</h2>
+      <button class="btn-icon" id="btnCloseModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="courseId">
+      <div class="form-group">
+        <label>课程名称 *</label>
+        <input type="text" id="cName" placeholder="如：高等数学" required>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>教师</label>
+          <input type="text" id="cTeacher" placeholder="老师姓名">
+        </div>
+        <div class="form-group">
+          <label>教室</label>
+          <input type="text" id="cRoom" placeholder="如：教学楼301">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>星期 *</label>
+          <select id="cDay">
+            <option value="1">周一</option><option value="2">周二</option>
+            <option value="3">周三</option><option value="4">周四</option>
+            <option value="5">周五</option><option value="6">周六</option>
+            <option value="7">周日</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>颜色标签</label>
+          <div class="color-picker" id="colorPicker"></div>
+          <input type="hidden" id="cColor" value="#4CAF50">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>开始时间 *</label>
+          <select id="cStart"></select>
+        </div>
+        <div class="form-group">
+          <label>结束时间 *</label>
+          <select id="cEnd"></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>起始周 *</label>
+          <select id="cWeekStart"></select>
+        </div>
+        <div class="form-group">
+          <label>结束周 *</label>
+          <select id="cWeekEnd"></select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>备注</label>
+        <input type="text" id="cNote" placeholder="如：带教材、实验服等">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-danger" id="btnDelete" style="display:none">删除课程</button>
+      <div style="flex:1"></div>
+      <button class="btn-secondary" id="btnCancel">取消</button>
+      <button class="btn-primary" id="btnSave" style="flex:0 1 auto;padding:10px 24px">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-overlay" id="settingsModal" style="display:none">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>设置</h2>
+      <button class="btn-icon" id="btnCloseSettings">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="settings-section">
+        <h3>学期信息</h3>
+        <div class="settings-card">
+          <div class="form-group" style="padding:0 16px 14px">
+            <label>学期名称</label>
+            <input type="text" id="sName" placeholder="如：2025春季学期">
+          </div>
+          <div class="form-group" style="padding:0 16px 14px">
+            <label>学期第一天（周一）</label>
+            <input type="date" id="sStart">
+          </div>
+          <div class="form-group" style="padding:0 16px 14px">
+            <label>总周数</label>
+            <select id="sWeeks">
+              <option value="16">16周</option><option value="17">17周</option>
+              <option value="18">18周</option><option value="19">19周</option>
+              <option value="20">20周</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn-primary" id="btnSaveSettings" style="margin-top:12px;width:100%">保存设置</button>
+      </div>
+      <div class="settings-section">
+        <h3>数据管理</h3>
+        <div class="settings-card">
+          <div class="settings-item">
+            <span>导出数据备份</span>
+            <button class="btn-data" id="btnExportData">导出JSON</button>
+          </div>
+          <div class="settings-item">
+            <span>导入数据恢复</span>
+            <button class="btn-data" id="btnImportData">导入JSON</button>
+          </div>
+          <div class="settings-item">
+            <span>清空所有数据</span>
+            <button id="btnClearAll">清空</button>
+          </div>
+        </div>
+        <input type="file" id="importFile" accept=".json">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toastContainer"></div>
+
+<!-- Install Banner -->
+<div class="install-banner" id="installBanner" style="display:none">
+  <span style="font-size:28px">📅</span>
+  <span class="ib-text">添加到主屏幕，像App一样使用</span>
+  <button class="ib-btn" id="btnInstall">添加</button>
+</div>
+
+<script>
+// ============================================================
+//  DATA LAYER
+// ============================================================
+const STORAGE_KEY = 'schedule_courses';
+const CONFIG_KEY = 'schedule_config';
+
+const DEFAULT_COLORS = [
+  '#4CAF50','#2196F3','#FF9800','#E91E63','#9C27B0',
+  '#00BCD4','#FF5722','#607D8B','#795548','#3F51B5'
+];
+
+const DEFAULT_COURSES = [
+  {id:'1',name:'高等数学',teacher:'张教授',classroom:'主楼201',dayOfWeek:1,startTime:'08:00',endTime:'09:40',color:'#4CAF50',weekStart:1,weekEnd:16,note:''},
+  {id:'2',name:'大学英语',teacher:'李老师',classroom:'外语楼305',dayOfWeek:2,startTime:'10:00',endTime:'11:40',color:'#2196F3',weekStart:1,weekEnd:16,note:''},
+  {id:'3',name:'数据结构',teacher:'王教授',classroom:'计算机楼101',dayOfWeek:3,startTime:'14:00',endTime:'15:40',color:'#FF9800',weekStart:1,weekEnd:16,note:''},
+  {id:'4',name:'体育',teacher:'赵老师',classroom:'体育馆',dayOfWeek:4,startTime:'16:00',endTime:'17:30',color:'#E91E63',weekStart:1,weekEnd:16,note:'穿运动服'},
+  {id:'5',name:'高等数学',teacher:'张教授',classroom:'主楼201',dayOfWeek:3,startTime:'08:00',endTime:'09:40',color:'#4CAF50',weekStart:1,weekEnd:16,note:''},
+];
+
+function loadCourses(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||[...DEFAULT_COURSES]}catch(e){return[...DEFAULT_COURSES]}}
+function saveCourses(courses){localStorage.setItem(STORAGE_KEY,JSON.stringify(courses))}
+function loadConfig(){const d=new Date();const def={semesterStart:getSemesterStart(d),semesterName:'2025春季学期',totalWeeks:18};try{const c=JSON.parse(localStorage.getItem(CONFIG_KEY));return{...def,...c}}catch(e){return def}}
+function saveConfig(c){localStorage.setItem(CONFIG_KEY,JSON.stringify(c))}
+function generateId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
+function getSemesterStart(d){d=new Date(d);const day=d.getDay();const monday=new Date(d);monday.setDate(d.getDate()-(day===0?6:day-1));monday.setHours(0,0,0,0);return monday.toISOString().slice(0,10)}
+
+// ============================================================
+//  STATE
+// ============================================================
+let courses=loadCourses();
+let config=loadConfig();
+let currentWeek=1;
+let currentDay=1;
+let currentView='week';
+let editingId=null;
+let deferredInstallPrompt=null;
+
+// ============================================================
+//  UTILS
+// ============================================================
+function timeToMinutes(t){const[p,m]=t.split(':').map(Number);return p*60+m}
+function getWeekDates(week){const base=new Date(config.semesterStart+'T00:00:00');const ms=(week-1)*7;const mon=new Date(base);mon.setDate(base.getDate()+ms);const days=[];for(let i=0;i<7;i++){const d=new Date(mon);d.setDate(mon.getDate()+i);days.push(d)}return days}
+function formatDate(d){return `${d.getMonth()+1}/${d.getDate()}`}
+function getTodayWeek(){const now=new Date();const base=new Date(config.semesterStart+'T00:00:00');const diff=now.getTime()-base.getTime();const w=Math.floor(diff/(7*86400000))+1;return Math.max(1,Math.min(w,config.totalWeeks))}
+function getTodayDay(){const d=new Date().getDay();return d===0?7:d}
+function getCoursesForDay(day,week){return courses.filter(c=>c.dayOfWeek===day&&c.weekStart<=week&&c.weekEnd>=week).sort((a,b)=>timeToMinutes(a.startTime)-timeToMinutes(b.startTime))}
+function toast(msg){const c=document.getElementById('toastContainer');const t=document.createElement('div');t.className='toast';t.textContent=msg;c.appendChild(t);setTimeout(()=>t.remove(),2300)}
+
+// ============================================================
+//  RENDER: WEEK VIEW
+// ============================================================
+function renderWeekView(){
+  const container=document.getElementById('weekView');
+  const dates=getWeekDates(currentWeek);
+  const dayNames=['周一','周二','周三','周四','周五','周六','周日'];
+  const todayWeek=getTodayWeek();const todayDay=getTodayDay();
+  const isCurrentWeek=(currentWeek===todayWeek);
+  const gridMinH=936; // 8:00-21:00 = 13h * 72px/30min = 936px
+
+  let html='<div class="week-grid">';
+
+  // Header row
+  html+='<div class="time-label" style="grid-row:1"></div>';
+  for(let d=0;d<7;d++){
+    const cls=(isCurrentWeek&&(d+1)===todayDay)?'day-label today':'day-label';
+    html+=`<div class="${cls}">${dayNames[d]}<br><small>${formatDate(dates[d])}</small></div>`;
+  }
+
+  // Time rows (8:00-21:00, each row = 30min)
+  for(let h=8;h<21;h++){
+    for(let m=0;m<60;m+=30){
+      const row=h*2+(m===0?0:1)-16+2; // grid row (1-indexed, header=1)
+      const timeStr=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+      html+=`<div class="time-label" style="grid-row:${row+1}">${m===0?timeStr:''}</div>`;
+      for(let d=0;d<7;d++){
+        html+=`<div class="day-col" style="grid-row:${row+1};min-height:36px" data-day="${d+1}" data-time="${timeStr}"></div>`;
+      }
+    }
+  }
+  html+='</div>';
+
+  container.innerHTML=html;
+
+  // Position course blocks as overlay layers per day column
+  for(let d=1;d<=7;d++){
+    const dayCourses=getCoursesForDay(d,currentWeek);
+    if(dayCourses.length===0)continue;
+    
+    const overlay=document.createElement('div');
+    overlay.style.cssText='position:relative;grid-column:'+(d+1)+';grid-row:3/29;pointer-events:none;';
+    const grid=container.querySelector('.week-grid');
+    
+    dayCourses.forEach(course=>{
+      const startMin=timeToMinutes(course.startTime)-480; // 480 = 8:00 in minutes
+      const endMin=timeToMinutes(course.endTime)-480;
+      const top=startMin/30*36; // each 30min = 36px
+      const height=(endMin-startMin)/30*36;
+      const block=document.createElement('div');
+      block.className='course-block';
+      block.style.cssText=`top:${top}px;height:${height}px;background:${course.color};pointer-events:auto;`;
+      block.innerHTML=`<div class="c-name">${course.name}</div><div class="c-detail">${course.startTime}-${course.endTime} ${course.classroom}</div>`;
+      block.addEventListener('click',(e)=>{e.stopPropagation();openEditModal(course.id)});
+      overlay.appendChild(block);
+    });
+    
+    grid.appendChild(overlay);
+  }
+
+  // Click on empty space to add
+  container.querySelectorAll('.day-col').forEach(cell=>{
+    cell.addEventListener('click',()=>{
+      const d=parseInt(cell.dataset.day);
+      const t=cell.dataset.time;
+      openAddModal(d,t);
+    });
+  });
+}
+
+// ============================================================
+//  RENDER: DAY VIEW
+// ============================================================
+function renderDayView(){
+  const container=document.getElementById('dayView');
+  const dates=getWeekDates(currentWeek);
+  const dayNames=['周一','周二','周三','周四','周五','周六','周日'];
+  const courses=getCoursesForDay(currentDay,currentWeek);
+  const date=dates[currentDay-1];
+
+  let html=`
+    <div class="day-header">
+      <button class="week-nav-btn" id="btnDayPrev">◀</button>
+      <h2>${dayNames[currentDay-1]} ${formatDate(date)}<br><small style="font-size:11px;color:var(--text2);font-weight:400">第${currentWeek}周</small></h2>
+      <button class="week-nav-btn" id="btnDayNext">▶</button>
+    </div>
+  `;
+
+  if(courses.length===0){
+    html+=`<div class="day-empty"><div class="empty-icon">📭</div><p>今天没有课程</p></div>`;
+  }else{
+    courses.forEach(c=>{
+      html+=`
+        <div class="day-card" style="--c:${c.color}" data-id="${c.id}">
+          <div class="dc-time">${c.startTime} - ${c.endTime}</div>
+          <div class="dc-name" style="color:${c.color}">${c.name}</div>
+          <div class="dc-info">${[c.teacher,c.classroom].filter(Boolean).join(' · ')}</div>
+          ${c.note?`<div class="dc-info" style="margin-top:2px">📌 ${c.note}</div>`:''}
+        </div>
+      `;
+    });
+  }
+
+  container.innerHTML=html;
+
+  // Event listeners
+  container.querySelectorAll('.day-card').forEach(card=>{
+    card.addEventListener('click',()=>openEditModal(card.dataset.id));
+    // Set left border color
+    card.style.setProperty('--c',card.dataset.color);
+  });
+  const dp=container.querySelector('#btnDayPrev');
+  const dn=container.querySelector('#btnDayNext');
+  if(dp)dp.addEventListener('click',()=>{
+    if(currentDay===1){currentDay=7;if(currentWeek>1)currentWeek--}
+    else currentDay--;
+    updateWeekNav();renderDayView();
+  });
+  if(dn)dn.addEventListener('click',()=>{
+    if(currentDay===7){currentDay=1;if(currentWeek<config.totalWeeks)currentWeek++}
+    else currentDay++;
+    updateWeekNav();renderDayView();
+  });
+}
+
+// Override day-card left border
+const dayCardStyle=document.createElement('style');
+dayCardStyle.textContent='.day-card::before{background:var(--c)}';
+document.head.appendChild(dayCardStyle);
+
+// ============================================================
+//  NAVIGATION
+// ============================================================
+function updateWeekNav(){
+  const dates=getWeekDates(currentWeek);
+  document.getElementById('weekInfo').innerHTML=`第${currentWeek}周<span>${formatDate(dates[0])} - ${formatDate(dates[6])}</span>`;
+}
+function goToWeek(w){
+  currentWeek=Math.max(1,Math.min(w,config.totalWeeks));
+  updateWeekNav();
+  if(currentView==='week')renderWeekView();
+  else renderDayView();
+}
+function goToToday(){
+  currentWeek=getTodayWeek();
+  currentDay=getTodayDay();
+  updateWeekNav();
+  if(currentView==='week')renderWeekView();
+  else renderDayView();
+}
+function switchView(view){
+  currentView=view;
+  document.getElementById('weekView').classList.toggle('active',view==='week');
+  document.getElementById('dayView').classList.toggle('active',view==='day');
+  document.querySelectorAll('#viewToggle button').forEach(b=>b.classList.toggle('active',b.dataset.view===view));
+  if(view==='day'){
+    const todayWeek=getTodayWeek();
+    if(currentWeek===todayWeek)currentDay=getTodayDay();
+    else currentDay=1;
+  }
+  if(view==='week')renderWeekView();
+  else renderDayView();
+}
+
+// ============================================================
+//  COURSE MODAL
+// ============================================================
+function openAddModal(day,time){
+  editingId=null;
+  document.getElementById('modalTitle').textContent='添加课程';
+  document.getElementById('btnDelete').style.display='none';
+  document.getElementById('courseId').value='';
+  document.getElementById('cName').value='';
+  document.getElementById('cTeacher').value='';
+  document.getElementById('cRoom').value='';
+  document.getElementById('cNote').value='';
+  document.getElementById('cDay').value=day||currentDay;
+  document.getElementById('cStart').value=time||'08:00';
+  document.getElementById('cEnd').value='09:40';
+  document.getElementById('cWeekStart').value=currentWeek;
+  document.getElementById('cWeekEnd').value=config.totalWeeks;
+  document.getElementById('cColor').value='#4CAF50';
+  updateColorPicker();
+  document.getElementById('courseModal').style.display='flex';
+}
+
+function openEditModal(id){
+  const c=courses.find(x=>x.id===id);if(!c)return;
+  editingId=id;
+  document.getElementById('modalTitle').textContent='编辑课程';
+  document.getElementById('btnDelete').style.display='block';
+  document.getElementById('courseId').value=c.id;
+  document.getElementById('cName').value=c.name;
+  document.getElementById('cTeacher').value=c.teacher||'';
+  document.getElementById('cRoom').value=c.classroom||'';
+  document.getElementById('cNote').value=c.note||'';
+  document.getElementById('cDay').value=c.dayOfWeek;
+  document.getElementById('cStart').value=c.startTime;
+  document.getElementById('cEnd').value=c.endTime;
+  document.getElementById('cWeekStart').value=c.weekStart;
+  document.getElementById('cWeekEnd').value=c.weekEnd;
+  document.getElementById('cColor').value=c.color;
+  updateColorPicker();
+  document.getElementById('courseModal').style.display='flex';
+}
+
+function closeModal(){
+  document.getElementById('courseModal').style.display='none';
+}
+
+function saveCourse(){
+  const name=document.getElementById('cName').value.trim();
+  if(!name){toast('请输入课程名称');return}
+  const startTime=document.getElementById('cStart').value;
+  const endTime=document.getElementById('cEnd').value;
+  if(timeToMinutes(endTime)<=timeToMinutes(startTime)){toast('结束时间必须晚于开始时间');return}
+  const weekStart=parseInt(document.getElementById('cWeekStart').value);
+  const weekEnd=parseInt(document.getElementById('cWeekEnd').value);
+  if(weekEnd<weekStart){toast('结束周不能早于起始周');return}
+
+  const course={
+    id:editingId||generateId(),
+    name,
+    teacher:document.getElementById('cTeacher').value.trim(),
+    classroom:document.getElementById('cRoom').value.trim(),
+    dayOfWeek:parseInt(document.getElementById('cDay').value),
+    startTime,
+    endTime,
+    color:document.getElementById('cColor').value,
+    weekStart,
+    weekEnd,
+    note:document.getElementById('cNote').value.trim()
+  };
+
+  if(editingId){
+    courses=courses.map(x=>x.id===editingId?course:x);
+  }else{
+    courses.push(course);
+  }
+  saveCourses(courses);
+  closeModal();
+  if(currentView==='week')renderWeekView();
+  else renderDayView();
+  toast(editingId?'课程已更新':'课程已添加');
+}
+
+function deleteCourse(){
+  if(!editingId)return;
+  if(!confirm('确定删除这门课程吗？此操作不可撤销。'))return;
+  courses=courses.filter(x=>x.id!==editingId);
+  saveCourses(courses);
+  closeModal();
+  if(currentView==='week')renderWeekView();
+  else renderDayView();
+  toast('课程已删除');
+}
+
+// ============================================================
+//  ICS EXPORT
+// ============================================================
+function escapeICS(s){return(s||'').replace(/[\\;,]/g,'\\$&').replace(/\n/g,'\\n')}
+function formatICSDate(d,t){const[p,m]=t.split(':');d=new Date(d);d.setHours(parseInt(p),parseInt(m),0,0);return d.toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'')}
+function generateICS(){
+  const base=new Date(config.semesterStart+'T00:00:00');
+  let ics=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//CourseSchedule//CN','CALSCALE:GREGORIAN','METHOD:PUBLISH','X-WR-CALNAME:'+escapeICS(config.semesterName)];
+
+  courses.forEach(c=>{
+    for(let w=c.weekStart;w<=c.weekEnd;w++){
+      const d=new Date(base);
+      d.setDate(base.getDate()+(w-1)*7+(c.dayOfWeek-1));
+      const dtStart=formatICSDate(d,c.startTime);
+      const dtEnd=formatICSDate(d,c.endTime);
+      const summary=`📚 ${c.name}`;
+      const location=[c.classroom,c.teacher].filter(Boolean).join(' / ');
+      const desc=[`教师: ${c.teacher||'未指定'}`,`教室: ${c.classroom||'未指定'}`,`第${w}周`,c.note].filter(Boolean).join('\\n');
+
+      ics.push('BEGIN:VEVENT');
+      ics.push(`DTSTART:${dtStart}`);
+      ics.push(`DTEND:${dtEnd}`);
+      ics.push(`SUMMARY:${escapeICS(summary)}`);
+      if(location)ics.push(`LOCATION:${escapeICS(location)}`);
+      ics.push(`DESCRIPTION:${escapeICS(desc)}`);
+      ics.push('BEGIN:VALARM');
+      ics.push('TRIGGER:-PT1H');
+      ics.push('ACTION:DISPLAY');
+      ics.push(`DESCRIPTION:${escapeICS('课程提醒: '+c.name+' 将在1小时后开始')}`);
+      ics.push('END:VALARM');
+      ics.push('END:VEVENT');
+    }
+  });
+
+  ics.push('END:VCALENDAR');
+  return ics.join('\r\n');
+}
+
+function exportICS(){
+  const ics=generateICS();
+  const blob=new Blob([ics],{type:'text/calendar;charset=utf-8'});
+  const filename=`课程表_${config.semesterName}.ics`;
+  
+  // iOS: prefer Web Share API (supports .ics files in iOS 15+)
+  if(navigator.share&&navigator.canShare&&navigator.canShare({files:[new File([blob],filename,{type:'text/calendar'})]})){
+    navigator.share({files:[new File([blob],filename,{type:'text/calendar'})]}).catch(()=>fallbackDownload());
+  }else{
+    fallbackDownload();
+  }
+  
+  function fallbackDownload(){
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download=filename;
+    document.body.appendChild(a);a.click();
+    document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }
+  toast('📥 日历文件已生成！\\n在 Safari 中打开即可导入到日历');
+}
+
+// ============================================================
+//  SETTINGS
+// ============================================================
+function openSettings(){
+  document.getElementById('sName').value=config.semesterName;
+  document.getElementById('sStart').value=config.semesterStart;
+  document.getElementById('sWeeks').value=config.totalWeeks;
+  document.getElementById('settingsModal').style.display='flex';
+}
+function closeSettings(){
+  document.getElementById('settingsModal').style.display='none';
+}
+function saveSettingsCfg(){
+  config.semesterName=document.getElementById('sName').value.trim()||config.semesterName;
+  config.semesterStart=document.getElementById('sStart').value||config.semesterStart;
+  config.totalWeeks=parseInt(document.getElementById('sWeeks').value);
+  saveConfig(config);
+  closeSettings();
+  populateWeekSelectors();
+  if(currentWeek>config.totalWeeks)currentWeek=config.totalWeeks;
+  updateWeekNav();
+  if(currentView==='week')renderWeekView();
+  else renderDayView();
+  toast('设置已保存');
+}
+function exportData(){
+  const data={courses,config};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='课程表备份.json';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('数据已导出');
+}
+function importData(){
+  document.getElementById('importFile').click();
+}
+function handleImport(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    try{
+      const data=JSON.parse(ev.target.result);
+      if(!data.courses||!data.config)throw new Error('Invalid format');
+      courses=data.courses;config=data.config;
+      saveCourses(courses);saveConfig(config);
+      updateWeekNav();
+      if(currentView==='week')renderWeekView();else renderDayView();
+      toast(`已导入 ${courses.length} 门课程`);
+    }catch(err){toast('导入失败：文件格式不正确')}
+  };
+  reader.readAsText(file);
+  e.target.value='';
+}
+function clearAll(){
+  if(!confirm('确定要清空所有课程数据吗？\n建议先导出一份备份。\n此操作不可撤销！'))return;
+  courses=[];saveCourses(courses);
+  if(currentView==='week')renderWeekView();else renderDayView();
+  toast('所有数据已清空');
+}
+
+// ============================================================
+//  COLOR PICKER
+// ============================================================
+function updateColorPicker(){
+  const picker=document.getElementById('colorPicker');
+  const selected=document.getElementById('cColor').value;
+  picker.innerHTML=DEFAULT_COLORS.map(c=>`<div class="color-dot${c===selected?' selected':''}" style="background:${c}" data-color="${c}"></div>`).join('');
+  picker.querySelectorAll('.color-dot').forEach(dot=>{
+    dot.addEventListener('click',()=>{
+      document.getElementById('cColor').value=dot.dataset.color;
+      updateColorPicker();
+    });
+  });
+}
+
+// ============================================================
+//  TIME SELECTORS
+// ============================================================
+function populateTimeSelectors(){
+  const times=[];
+  for(let h=8;h<22;h++){for(let m=0;m<60;m+=30){times.push(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`)}}
+  const opts=times.map(t=>`<option value="${t}">${t}</option>`).join('');
+  document.getElementById('cStart').innerHTML=opts;
+  document.getElementById('cEnd').innerHTML=opts;
+  // Defaults
+  document.getElementById('cStart').value='08:00';
+  document.getElementById('cEnd').value='09:40';
+}
+
+function populateWeekSelectors(){
+  const max=config.totalWeeks;
+  let opts='';
+  for(let i=1;i<=max;i++){opts+=`<option value="${i}">第${i}周</option>`}
+  document.getElementById('cWeekStart').innerHTML=opts;
+  document.getElementById('cWeekEnd').innerHTML=opts;
+  document.getElementById('cWeekEnd').value=max;
+}
+
+// ============================================================
+//  EVENT BINDINGS
+// ============================================================
+document.getElementById('btnPrevWeek').addEventListener('click',()=>goToWeek(currentWeek-1));
+document.getElementById('btnNextWeek').addEventListener('click',()=>goToWeek(currentWeek+1));
+document.getElementById('btnToday').addEventListener('click',goToToday);
+document.getElementById('btnAddCourse').addEventListener('click',()=>openAddModal(currentDay,null));
+document.getElementById('btnExport').addEventListener('click',exportICS);
+document.getElementById('btnSettings').addEventListener('click',openSettings);
+
+// View toggle
+document.querySelectorAll('#viewToggle button').forEach(btn=>{
+  btn.addEventListener('click',()=>switchView(btn.dataset.view));
+});
+
+// Modal
+document.getElementById('btnCloseModal').addEventListener('click',closeModal);
+document.getElementById('btnCancel').addEventListener('click',closeModal);
+document.getElementById('btnSave').addEventListener('click',saveCourse);
+document.getElementById('btnDelete').addEventListener('click',deleteCourse);
+document.getElementById('courseModal').addEventListener('click',function(e){if(e.target===this)closeModal()});
+
+// Settings
+document.getElementById('btnCloseSettings').addEventListener('click',closeSettings);
+document.getElementById('btnSaveSettings').addEventListener('click',saveSettingsCfg);
+document.getElementById('btnExportData').addEventListener('click',exportData);
+document.getElementById('btnImportData').addEventListener('click',importData);
+document.getElementById('btnClearAll').addEventListener('click',clearAll);
+document.getElementById('importFile').addEventListener('change',handleImport);
+document.getElementById('settingsModal').addEventListener('click',function(e){if(e.target===this)closeSettings()});
+
+// Install banner
+document.getElementById('btnInstall').addEventListener('click',()=>{
+  if(deferredInstallPrompt){
+    deferredInstallPrompt.prompt();
+    deferredInstallPrompt.userChoice.then(()=>{
+      deferredInstallPrompt=null;
+      document.getElementById('installBanner').style.display='none';
+    });
+  }else{
+    document.getElementById('installBanner').style.display='none';
+    toast('在 Safari 中点击「分享」→「添加到主屏幕」');
+  }
+});
+
+// Listen for install prompt
+window.addEventListener('beforeinstallprompt',(e)=>{
+  e.preventDefault();
+  deferredInstallPrompt=e;
+  document.getElementById('installBanner').style.display='flex';
+});
+
+// ============================================================
+//  PWA MANIFEST (Blob URL)
+// ============================================================
+(function setupPWA(){
+  const manifest={
+    name:'课程表',
+    short_name:'课程表',
+    description:'个人课程表管理',
+    start_url:location.href,
+    display:'standalone',
+    orientation:'portrait',
+    background_color:'#f5f5f7',
+    theme_color:'#1d1d1f',
+    icons:[{src:'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="40" fill="#4CAF50"/><text x="96" y="124" text-anchor="middle" font-size="110" font-family="sans-serif">📅</text></svg>'),sizes:'192x192',type:'image/svg+xml'}]
+  };
+  const blob=new Blob([JSON.stringify(manifest)],{type:'application/json'});
+  const link=document.createElement('link');
+  link.rel='manifest';link.href=URL.createObjectURL(blob);
+  document.head.appendChild(link);
+})();
+
+// ============================================================
+//  SERVICE WORKER
+// ============================================================
+if('serviceWorker' in navigator){
+  const swCode=`
+const CACHE='course-schedule-v1';
+self.addEventListener('install',e=>{self.skipWaiting()});
+self.addEventListener('activate',e=>{e.waitUntil(self.clients.claim())});
+self.addEventListener('fetch',e=>{
+  e.respondWith(
+    caches.match(e.request).then(r=>r||fetch(e.request).then(resp=>{
+      if(resp.ok){const clone=resp.clone();caches.open(CACHE).then(c=>c.put(e.request,clone))}
+      return resp;
+    }).catch(()=>caches.match(e.request)))
+  );
+});`;
+  const swBlob=new Blob([swCode],{type:'application/javascript'});
+  const swUrl=URL.createObjectURL(swBlob);
+  navigator.serviceWorker.register(swUrl,{scope:'/'}).catch(()=>{/* Silently fail for file:// protocol */});
+}
+
+// ============================================================
+//  INIT
+// ============================================================
+function init(){
+  populateTimeSelectors();
+  populateWeekSelectors();
+  updateColorPicker();
+  currentWeek=getTodayWeek();
+  currentDay=getTodayDay();
+  updateWeekNav();
+  renderWeekView();
+}
+
+init();
+</script>
+</body>
+</html>
