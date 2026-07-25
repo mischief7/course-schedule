@@ -27,7 +27,8 @@ body{
   -webkit-user-select:none;user-select:none;
 }
 button{font-family:inherit;border:none;cursor:pointer;background:none;color:inherit;font-size:inherit}
-input,select{font-family:inherit;font-size:16px;color:var(--text);-webkit-appearance:none;appearance:none}
+input{font-family:inherit;font-size:16px;color:var(--text);-webkit-appearance:none;appearance:none}
+select{font-family:inherit;font-size:16px;color:var(--text)}
 input:focus,select:focus{outline:none}
 
 #app{display:flex;flex-direction:column;height:100%;max-width:600px;margin:0 auto;position:relative}
@@ -352,17 +353,14 @@ let deferredInstallPrompt=null;
 // ============================================================
 //  DATE UTILS
 // ============================================================
-function toDate(s){const p=s.split('-');return new Date(p[0],p[1]-1,p[2])}
-function dateStr(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
-function addDays(s,n){const d=toDate(s);d.setDate(d.getDate()+n);return dateStr(d)}
-function dayOfWeek(s){return toDate(s).getDay()||7} // 1=Mon,7=Sun
-function getMonday(s){
-  const d=toDate(s);const dow=(d.getDay()||7);
-  d.setDate(d.getDate()-dow+1);return dateStr(d);
-}
+function toDate(s){if(!s||typeof s!=='string')return new Date();const p=s.split('-');if(p.length!==3||isNaN(+p[0])||isNaN(+p[1])||isNaN(+p[2]))return new Date();return new Date(+p[0],+p[1]-1,+p[2])}
+function dateStr(d){d=d||new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function addDays(s,n){s=s||dateStr();const d=toDate(s);d.setDate(d.getDate()+(+n||0));return dateStr(d)}
+function dayOfWeek(s){return toDate(s).getDay()||7}
+function getMonday(s){s=s||dateStr();const d=toDate(s);const dow=(d.getDay()||7);d.setDate(d.getDate()-dow+1);return dateStr(d)}
 function getToday(){return dateStr(new Date())}
-function formatMD(s){const d=toDate(s);return (d.getMonth()+1)+'月'+d.getDate()+'日'}
-function formatMDShort(s){const d=toDate(s);return (d.getMonth()+1)+'/'+d.getDate()}
+function formatMD(s){const d=toDate(s);return isNaN(d.getMonth())?'':((d.getMonth()+1)+'月'+d.getDate()+'日')}
+function formatMDShort(s){const d=toDate(s);return isNaN(d.getMonth())?'':((d.getMonth()+1)+'/'+d.getDate())}
 function timeToMinutes(t){const[p,m]=t.split(':').map(Number);return p*60+m}
 function sameDay(a,b){return a===b}
 
@@ -781,7 +779,7 @@ function toast(msg){const c=document.getElementById('toastContainer');const t=do
   document.head.appendChild(link);
 })();
 if('serviceWorker' in navigator){
-  const swCode=`const CACHE='teacher-schedule-v2';self.addEventListener('install',e=>{self.skipWaiting()});self.addEventListener('activate',e=>{e.waitUntil(self.clients.claim())});self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).then(resp=>{if(resp.ok){const clone=resp.clone();caches.open(CACHE).then(c=>c.put(e.request,clone))}return resp}).catch(()=>caches.match(e.request))))});`;
+  const swCode=`const CACHE='teacher-schedule-v3';self.addEventListener('install',e=>{self.skipWaiting()});self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).then(resp=>{if(resp.ok){const clone=resp.clone();caches.open(CACHE).then(c=>c.put(e.request,clone))}return resp}).catch(()=>caches.match(e.request))))});`;
   const swBlob=new Blob([swCode],{type:'application/javascript'});
   navigator.serviceWorker.register(URL.createObjectURL(swBlob),{scope:'/'}).catch(()=>{});
 }
@@ -790,9 +788,17 @@ if('serviceWorker' in navigator){
 //  INIT
 // ============================================================
 (function init(){
-  populateTimeSelectors();updateColorPicker();
-  currentWeekStart=getMonday(getToday());currentDayDate=getToday();
-  updateWeekNav();renderWeekView();
+  try{
+    if(typeof populateTimeSelectors==='function')populateTimeSelectors();
+  }catch(e){}
+  try{
+    if(typeof updateColorPicker==='function')updateColorPicker();
+  }catch(e){}
+  currentWeekStart=getMonday(getToday());
+  if(!currentWeekStart||isNaN(toDate(currentWeekStart).getMonth()))currentWeekStart=getToday();
+  currentDayDate=currentDayDate||getToday();
+  updateWeekNav();
+  if(typeof renderWeekView==='function')renderWeekView();
 })();
 </script>
 </body>
