@@ -284,14 +284,14 @@ function rwv(){const c=D.getElementById('weekView'),tod=today();const dates=[];f
   // 30-min rows: 8:00-21:00 = 26 rows, each 18px = 468px
   let h='<div class="week-grid"><div class="time-label" style="grid-row:1"></div>';
   for(let i=0;i<7;i++){const cl=(dates[i]===tod)?'day-label today':'day-label';h+=`<div class="${cl}">${DN[i]}<span>${ms(dates[i])}</span></div>`}
-  for(let hh=8;hh<21;hh++)for(let m=0;m<60;m+=30){
+  for(let hh=8;hh<22;hh++)for(let m=0;m<60;m+=30){
     const row=(hh-8)*2+(m/30)+2,ts=String(hh).padStart(2,'0')+':'+String(m).padStart(2,'0');
     h+=`<div class="time-label" style="grid-row:${row}">${m===0?ts:''}</div>`;
     for(let d=0;d<7;d++)h+=`<div class="day-col" style="grid-row:${row}" data-date="${dates[d]}" data-time="${ts}"></div>`;
   }
   h+='</div>';c.innerHTML=h;const grid=c.querySelector('.week-grid');const now=new Date();
-  // overlay spans rows 2 to 28 (27 rows = 26 + 1) — using 30-min base, sub-30min blocks have fractional top via px
-  for(let d=0;d<7;d++){const dc=getForDate(dates[d]);if(!dc.length)continue;const o=document.createElement('div');o.style.cssText='position:relative;grid-column:'+(d+2)+';grid-row:2/28;pointer-events:none;';
+  // overlay spans rows 2 to 30 (8:00-22:00 = 28 rows + header)
+  for(let d=0;d<7;d++){const dc=getForDate(dates[d]);if(!dc.length)continue;const o=document.createElement('div');o.style.cssText='position:relative;grid-column:'+(d+2)+';grid-row:2/30;pointer-events:none;';
     dc.forEach(co=>{
       const sm=tm(co.startTime)-480,em=tm(co.endTime)-480;
       const top=sm/30*22,ht=Math.max((em-sm)/30*22,24);
