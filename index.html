@@ -303,11 +303,14 @@ function rwv(){const c=D.getElementById('weekView'),tod=today();const dates=[];f
       const bl=document.createElement('div');bl.className='course-block'+(needed?' warn':'');
       bl.style.cssText=`top:${top}px;height:${ht}px;background:${co.color};pointer-events:auto;`;
       const studentName=sn(co.studentId);
+      const orgName=on(co.organizationId);
       const aIcon=attendance==='present'?'✅':attendance==='leave'?'📝':attendance==='absent'?'❌':'';
-      let html='<div class="cb-row cb-name">'+co.name+(needed?' ⚠':'')+'</div>';
-      if(ht>=44)html+='<div class="cb-row cb-meta">'+co.startTime+'-'+co.endTime+' '+studentName+'</div>';
+      let html='<div class="cb-row cb-name">'+co.name+' · '+studentName+(needed?' ⚠':'')+'</div>';
+      if(ht>=44)html+='<div class="cb-row cb-meta">'+co.startTime+'-'+co.endTime+' '+(co.location||'')+'</div>';
       if(ht>=66){
-        html+='<div class="cb-row cb-status">';
+        html+='<div class="cb-row cb-meta">'+(orgName||'');
+        if(co.tuition)html+='  💰¥'+co.tuition;
+        html+='</div><div class="cb-row cb-status">';
         if(mk&&mk.completed)html+='<span>✅</span>';
         if(paid)html+='<span>💰</span>';
         if(aIcon)html+='<span>'+aIcon+'</span>';
