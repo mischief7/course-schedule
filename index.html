@@ -480,7 +480,7 @@ function osm(sid){
     D.getElementById('sPaymentMode').value=s.paymentMode||'postpaid';
     renderPrepaidEntries(s.prepaidEntries||[]);
   }else{
-    ['sNameI','sAge','sPhone','sLevel','sLocationI','sNoteI','sDefTuition','sDuration','sPrepaidAmt','sPrepaidDate'].forEach(function(id){D.getElementById(id).value=''});
+    ['sNameI','sAge','sPhone','sLevel','sLocationI','sNoteI','sDefTuition','sDuration'].forEach(function(id){try{D.getElementById(id).value=''}catch(e){}});
     D.getElementById('sType').value='individual';D.getElementById('sPaymentMode').value='postpaid';D.getElementById('sOrgId').value='';
     renderPrepaidEntries([{amount:0,date:today()}]);
   }
