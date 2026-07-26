@@ -64,7 +64,7 @@ input[type=time],input[type=date]{min-height:44px}
 .sc-card.red .sc-val{color:#c62828}
 .sc-card.blue .sc-val{color:#1565c0}
 
-#weekView{padding:4px 4px 20px}
+#weekView{padding:4px 0 20px 4px}
 .week-grid{position:relative;display:grid;grid-template-columns:44px repeat(7,1fr)}
 .day-label{background:var(--surface);text-align:center;padding:8px 2px;font-size:13px;font-weight:700;border-bottom:2px solid var(--border);line-height:1.4;border-right:1px solid #bbb}
 .day-label span{display:block;font-size:11px;color:var(--text2);font-weight:500;margin-top:1px}
@@ -73,17 +73,16 @@ input[type=time],input[type=date]{min-height:44px}
 .time-label.hour{font-weight:700;color:var(--text)}
 .day-col{position:relative;min-height:22px}
 /* Horizontal grid lines — drawn PER COLUMN UNDER course blocks (z-index:1 < course z-index:2).
-   inset:0 against o's padding-box which excludes the 2px right border → vertical line stays visible */
+   inset:0 against o's padding-box which excludes the 1px right border → vertical line stays visible */
 .grid-hlines{position:absolute;inset:0;pointer-events:none;z-index:1;background:repeating-linear-gradient(to bottom,transparent 0,transparent 21px,#d0d0d0 21px,#d0d0d0 22px)}
-.course-block{position:absolute;left:0;right:2px;border-radius:4px;padding:2px 5px;font-size:11px;line-height:1.25;overflow:hidden;cursor:pointer;color:#fff;font-weight:600;z-index:2;display:flex;flex-direction:column;justify-content:center;text-shadow:0 1px 2px rgba(0,0,0,.3);border:2px solid rgba(0,0,0,.25)}
+.course-block{position:absolute;left:0;right:1px;border-radius:4px;padding:2px 5px;font-size:11px;line-height:1.25;overflow:hidden;cursor:pointer;color:#fff;font-weight:600;z-index:2;display:flex;flex-direction:column;justify-content:center;text-shadow:0 1px 2px rgba(0,0,0,.3);border:2px solid rgba(0,0,0,.25)}
 .course-block.warn{border-color:var(--warning);box-shadow:0 0 0 2px var(--warning);animation:warnPulse 1.5s infinite}
 @keyframes warnPulse{0%,100%{box-shadow:0 0 0 2px var(--warning)}50%{box-shadow:0 0 0 4px var(--warning)}}
 .course-block:active{transform:scale(.97)}
 .course-block .cb-row{flex-shrink:0}
-.course-block .cb-name{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700;line-height:1.2}
+.course-block .cb-name{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700;line-height:1.2;padding-right:14px}
 .course-block .cb-meta{font-size:10px;opacity:.95;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
-.course-block .cb-status{font-size:9px;opacity:.95;line-height:1;margin-top:auto;display:flex;gap:3px}
-.course-block .cb-expand{position:absolute;top:1px;right:2px;font-size:9px;opacity:.7;cursor:pointer;padding:1px 4px;background:rgba(0,0,0,.2);border-radius:3px;line-height:1;transition:all .15s;color:#fff;z-index:4;pointer-events:auto}
+.course-block .cb-expand{position:absolute;top:2px;right:2px;font-size:8px;opacity:.55;cursor:pointer;padding:1px 3px;background:rgba(0,0,0,.18);border-radius:3px;line-height:1;transition:all .15s;color:#fff;z-index:4;pointer-events:auto}
 .course-block .cb-expand:active{opacity:1;transform:scale(1.15)}
 .course-block.expanded{height:auto!important;min-height:60px;max-height:none;z-index:10;box-shadow:0 4px 20px rgba(0,0,0,.35);white-space:normal}
 .course-block.expanded .cb-row{display:block!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
@@ -330,7 +329,7 @@ function rwv(){const c=D.getElementById('weekView'),tod=today();const dates=[];f
     for(let d=0;d<7;d++)h+=`<div class="day-col" style="grid-row:${row}" data-date="${dates[d]}" data-time="${ts}"></div>`;
   }
   h+='</div>';c.innerHTML=h;applyBg();const grid=c.querySelector('.week-grid');const now=new Date();
-  for(let d=0;d<7;d++){const dc=getForDate(dates[d]);const o=document.createElement('div');o.style.cssText='position:relative;grid-column:'+(d+2)+';grid-row:2/30;pointer-events:none;border-right:2px solid #999;box-sizing:border-box;';
+  for(let d=0;d<7;d++){const dc=getForDate(dates[d]);const o=document.createElement('div');o.style.cssText='position:relative;grid-column:'+(d+2)+';grid-row:2/30;pointer-events:none;border-right:1px solid #aaa;box-sizing:border-box;';
     const hl=document.createElement('div');hl.className='grid-hlines';o.appendChild(hl);
     dc.forEach(co=>{
       const sm=tm(co.startTime)-480,em=tm(co.endTime)-480;
@@ -344,15 +343,10 @@ function rwv(){const c=D.getElementById('weekView'),tod=today();const dates=[];f
       const bl=document.createElement('div');bl.className='course-block'+(needed?' warn':'');
       bl.style.cssText=`top:${top}px;height:${ht}px;background:${co.color};pointer-events:auto;color:#fff;`;
       bl.dataset.courseId=co.id;bl.dataset.date=dates[d];
-      // Build compact content based on block height
+      bl.dataset.ht=ht;
       const studentName=sn(co.studentId)||'未指定';
       const orgName=co.organizationId?on(co.organizationId):'';
-      let inner='<div class="cb-name">'+co.name+'</div>';
-      inner+='<div class="cb-meta">👤'+studentName+(orgName?' · '+orgName:'')+'</div>';
-      inner+='<div class="cb-meta">'+co.startTime+'-'+co.endTime+(co.tuition?' · ¥'+co.tuition:'')+'</div>';
-      inner+='<div class="cb-status">'+(done?'✅':(skip?'🚫':'⬜'))+(paid?'💰':'')+'</div>';
-      inner+='<span class="cb-expand" data-action="expand">▼</span>';
-      bl.innerHTML=inner;
+      bl.innerHTML=buildBlockInner(co,studentName,orgName,ht,done,skip,paid);
       // Click on course block → detail popup
       bl.addEventListener('click',function(e){
         if(e.target.closest('[data-action="expand"]')){
@@ -367,6 +361,19 @@ function rwv(){const c=D.getElementById('weekView'),tod=today();const dates=[];f
     });grid.appendChild(o);
   }
   c.querySelectorAll('.day-col').forEach(cell=>{cell.addEventListener('click',function(){oam(cell.dataset.date,cell.dataset.time)})});
+}
+
+// Build compact/full inner HTML for a course block based on its height
+function buildBlockInner(co,studentName,orgName,ht,done,skip,paid){
+  const icons=(done?'✅':(skip?'🚫':'⬜'))+(paid?'💰':'');
+  if(ht<36){
+    return '<div class="cb-name">'+co.name+(icons?' '+icons:'')+'</div><span class="cb-expand" data-action="expand">▼</span>';
+  }
+  let h='<div class="cb-name">'+co.name+(icons?' '+icons:'')+'</div>';
+  h+='<div class="cb-meta">👤'+studentName+(orgName?' · '+orgName:'')+'</div>';
+  h+='<div class="cb-meta">'+co.startTime+'-'+co.endTime+(co.tuition?' ¥'+co.tuition:'')+'</div>';
+  h+='<span class="cb-expand" data-action="expand">▼</span>';
+  return h;
 }
 function rdv(){const c=D.getElementById('dayView'),tod=today(),dc=getForDate(cdd);
   let h=`<div class="day-header"><button class="week-nav-btn" id="btnDayPrev">◀</button><h2>${md(cdd)} ${DN[dow(cdd)-1]}${cdd===tod?' <small style="color:var(--accent)">今天</small>':''}</h2><button class="week-nav-btn" id="btnDayNext">▶</button></div>`;
@@ -432,14 +439,14 @@ function toggleCourseExpand(bl,co,d){
   if(bl.classList.contains('expanded')){
     bl.classList.remove('expanded');
     bl.querySelector('.cb-expand').textContent='▼';
-    // Restore compact view
     const studentName=sn(co.studentId)||'未指定';
     const orgName=co.organizationId?on(co.organizationId):'';
     const mk=co.marks&&co.marks[d]?co.marks[d]:null;
     const done=mk?mk.completed:false;
     const skip=mk?mk.skipped:false;
     const paid=mk?mk.paid:isAutoPaid(co,d);
-    bl.innerHTML='<div class="cb-name">'+co.name+'</div><div class="cb-meta">👤'+studentName+(orgName?' · '+orgName:'')+'</div><div class="cb-meta">'+co.startTime+'-'+co.endTime+(co.tuition?' · ¥'+co.tuition:'')+'</div><div class="cb-status">'+(done?'✅':(skip?'🚫':'⬜'))+(paid?'💰':'')+'</div><span class="cb-expand" data-action="expand">▼</span>';
+    const ht=parseFloat(bl.dataset.ht)||22;
+    bl.innerHTML=buildBlockInner(co,studentName,orgName,ht,done,skip,paid);
   }else{
     bl.classList.add('expanded');
     bl.querySelector('.cb-expand').textContent='▲';
