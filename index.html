@@ -72,10 +72,11 @@ input[type=time],input[type=date]{min-height:44px}
 .time-label{font-size:11px;color:var(--text2);text-align:right;padding:0 4px 0 0;height:22px;line-height:22px;font-weight:600;background:rgba(255,255,255,.7);position:relative;z-index:1}
 .time-label.hour{font-weight:700;color:var(--text)}
 .day-col{position:relative;min-height:22px;border-left:1px dashed var(--border)}
-.week-grid{display:grid;grid-template-columns:44px repeat(7,1fr);background-image:linear-gradient(to right,var(--border) 1px,transparent 1px),linear-gradient(to bottom,var(--border) 1px,transparent 1px);background-size:calc(100%/8) 100%,100% 22px;background-position:44px 0,0 22px}
+.week-grid{position:relative;display:grid;grid-template-columns:44px repeat(7,1fr);background-image:linear-gradient(to right,var(--border) 1px,transparent 1px),linear-gradient(to bottom,var(--border) 1px,transparent 1px);background-size:calc(100%/8) 100%,100% 22px;background-position:44px 0,0 22px}
+.week-grid.has-bg{background-image:linear-gradient(to right,var(--border) 1px,transparent 1px),linear-gradient(to bottom,var(--border) 1px,transparent 1px),var(--bg-pattern,transparent);background-size:calc(100%/8) 100%,100% 22px,cover;background-position:44px 0,0 22px,center}
 .week-grid-row-divider{position:absolute;left:0;right:0;height:1px;background:var(--border);pointer-events:none}
 .week-grid-row-divider.hour{height:1.5px;background:var(--text3)}
-.course-block{position:absolute;left:2px;right:2px;border-radius:6px;padding:3px 6px;font-size:12px;line-height:1.3;overflow:hidden;cursor:pointer;color:var(--text);font-weight:600;z-index:2;border:2px solid transparent;display:flex;flex-direction:column;justify-content:center;background:rgba(255,255,255,.4);backdrop-filter:blur(2px)}
+.course-block{position:absolute;left:2px;right:2px;border-radius:6px;padding:3px 6px;font-size:12px;line-height:1.3;overflow:hidden;cursor:pointer;color:#fff;font-weight:600;z-index:2;border:2px solid rgba(0,0,0,.25);box-shadow:inset 0 0 0 1px rgba(255,255,255,.15);display:flex;flex-direction:column;justify-content:center;text-shadow:0 1px 2px rgba(0,0,0,.25)}
 .course-block.warn{box-shadow:0 0 0 2px var(--warning);animation:warnPulse 1.5s infinite}
 @keyframes warnPulse{0%,100%{box-shadow:0 0 0 2px var(--warning)}50%{box-shadow:0 0 0 4px var(--warning)}}
 .course-block:active{transform:scale(.97)}
@@ -156,9 +157,9 @@ input[type=time],input[type=date]{min-height:44px}
 .prepaid-bar .pb-fill{height:100%;background:var(--accent);border-radius:4px;transition:width .3s}
 .prepaid-bar .pb-fill.low{background:var(--warning)}.prepaid-bar .pb-fill.empty{background:var(--danger)}
 
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;display:flex;align-items:center;justify-content:center;animation:fadeIn .2s}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-.modal{background:var(--surface);width:100%;max-width:600px;max-height:90vh;border-radius:20px 20px 0 0;display:flex;flex-direction:column;animation:slideUp .25s;padding-bottom:var(--safe-bottom)}
+.modal{background:var(--surface);width:calc(100% - 32px);max-width:400px;max-height:80vh;border-radius:16px;display:flex;flex-direction:column;animation:slideUp .25s;overflow:hidden}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 .modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border)}
 .modal-header h2{font-size:17px;font-weight:700}
@@ -325,7 +326,7 @@ function rsc(){
 window.cddScroll=function(){document.querySelector('.main-content').scrollTo({top:0,behavior:'smooth'})};
 
 function rwv(){const c=D.getElementById('weekView'),tod=today();const dates=[];for(let i=0;i<7;i++)dates.push(ad(cws,i));
-  let h='<div class="week-grid bg-schedule-area"><div class="time-label" style="grid-row:1"></div>';
+  let h='<div class="week-grid"><div class="time-label" style="grid-row:1"></div>';
   for(let i=0;i<7;i++){const cl=(dates[i]===tod)?'day-label today':'day-label';h+=`<div class="${cl}">${DN[i]}<span>${ms(dates[i])}</span></div>`}
   for(let hh=8;hh<22;hh++)for(let m=0;m<60;m+=30){
     const row=(hh-8)*2+(m/30)+2,ts=String(hh).padStart(2,'0')+':'+String(m).padStart(2,'0');
@@ -342,7 +343,7 @@ function rwv(){const c=D.getElementById('weekView'),tod=today();const dates=[];f
       const needed=(now>endDt&&(!mk||(!mk.completed&&!mk.skipped)));
       const paid=mk?mk.paid:isAutoPaid(co,dates[d]);
       const bl=document.createElement('div');bl.className='course-block'+(needed?' warn':'');
-      bl.style.cssText=`top:${top}px;height:${ht}px;border-color:${co.color};color:${co.color};pointer-events:auto;`;
+      bl.style.cssText=`top:${top}px;height:${ht}px;background:${co.color};border-color:rgba(0,0,0,.25);pointer-events:auto;color:#fff;`;
       const studentName=sn(co.studentId);
       bl.innerHTML='<div class="cb-name">'+studentName+'</div>';
       bl.dataset.courseId=co.id;bl.dataset.date=dates[d];
@@ -635,7 +636,7 @@ function rst(){D.getElementById('sName').value=config.scheduleName;const bs=D.ge
 function svst(){config.scheduleName=D.getElementById('sName').value.trim()||'我的课程表';S(KF,config);toast('已保存')}
 function hbg(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=function(ev){config.bgImage=ev.target.result;S(KF,config);applyBg();rst();toast('背景图已设置')};r.readAsDataURL(f)}
 function rbg(){config.bgImage='';S(KF,config);applyBg();rst();toast('已移除')}
-function applyBg(){const v=config.bgImage?'url('+config.bgImage+')':'';D.querySelectorAll('.week-grid,.day-view-wrap').forEach(function(el){el.style.backgroundImage=v})}
+function applyBg(){const v=config.bgImage?'url('+config.bgImage+')':'';D.querySelectorAll('.week-grid').forEach(function(el){el.style.backgroundImage=v?'linear-gradient(to right,var(--border) 1px,transparent 1px),linear-gradient(to bottom,var(--border) 1px,transparent 1px),'+v:'linear-gradient(to right,var(--border) 1px,transparent 1px),linear-gradient(to bottom,var(--border) 1px,transparent 1px)'});}
 function exa(){const d={courses,students,orgs,config,version:5};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download='课程表备份.json';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u);toast('已导出')}
 function hia(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=function(ev){try{const d=JSON.parse(ev.target.result);if(!d.courses){toast('格式不正确');return}courses=d.courses||[];students=d.students||[];orgs=d.orgs||[];config=d.config||{scheduleName:'我的课程表',bgImage:''};S(KC,courses);S(KS,students);S(KO,orgs);S(KF,config);document.body.style.backgroundImage=config.bgImage?'url('+config.bgImage+')':'';if(tab==='schedule'){rsc();if(cv==='week')rwv();else rdv()}else if(tab==='students')rsl();else if(tab==='orgs')rol();else if(tab==='salary')rss();else rst();toast('已导入 '+courses.length+' 课 '+students.length+' 学生 '+orgs.length+' 机构')}catch(err){toast('导入失败')}};r.readAsText(f);e.target.value=''}
 function cla(){if(!confirm('确定清空所有数据？'))return;courses=[];students=[];orgs=[];config={scheduleName:'我的课程表',bgImage:''};S(KC,courses);S(KS,students);S(KO,orgs);S(KF,config);document.body.style.backgroundImage='';if(tab==='schedule'){rsc();if(cv==='week')rwv();else rdv()}else if(tab==='students')rsl();else if(tab==='orgs')rol();else if(tab==='salary')rss();else rst();toast('已清空')}
