@@ -342,7 +342,9 @@ function rwv(){const c=D.getElementById('weekView'),tod=today();const dates=[];f
       const done=mk?mk.completed:false;
       const skip=mk?mk.skipped:false;
       const bl=document.createElement('div');bl.className='course-block'+(needed?' warn':'');
-      bl.style.cssText=`top:${top}px;height:${ht}px;background:${co.color};pointer-events:auto;color:#fff;`;
+      // Composite background: course color + horizontal grid lines overlay so grid stays visible through course blocks
+      const gridLines='linear-gradient(to bottom, transparent 21px, rgba(255,255,255,.35) 21px, rgba(255,255,255,.35) 22px)';
+      bl.style.cssText=`top:${top}px;height:${ht}px;background-image:${gridLines},linear-gradient(${co.color},${co.color});background-size:100% 22px,100% 100%;background-repeat:repeat,no-repeat;pointer-events:auto;color:#fff;`;
       bl.dataset.courseId=co.id;bl.dataset.date=dates[d];
       // Build compact content based on block height
       const studentName=sn(co.studentId)||'未指定';
