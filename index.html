@@ -80,9 +80,8 @@ input[type=time],input[type=date]{min-height:44px}
 @keyframes warnPulse{0%,100%{box-shadow:0 0 0 2px var(--warning)}50%{box-shadow:0 0 0 4px var(--warning)}}
 .course-block:active{transform:scale(.97)}
 .course-block .cb-row{flex-shrink:0}
-.course-block .cb-name{font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700;line-height:1.2;padding-right:11px}
+.course-block .cb-name{font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700;line-height:1.2}
 .course-block .cb-meta{font-size:9px;opacity:.95;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
-.course-block .cb-expand{position:absolute;top:2px;right:1px;font-size:7px;opacity:.5;cursor:pointer;padding:0 2px;background:rgba(0,0,0,.18);border-radius:3px;line-height:1;transition:all .15s;color:#fff;z-index:4;pointer-events:auto}
 .course-block .cb-expand:active{opacity:1;transform:scale(1.15)}
 .course-block.expanded{height:auto!important;min-height:60px;max-height:none;z-index:10;box-shadow:0 4px 20px rgba(0,0,0,.35);white-space:normal}
 .course-block.expanded .cb-row{display:block!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
@@ -349,12 +348,6 @@ function rwv(){const c=D.getElementById('weekView'),tod=today();const dates=[];f
       bl.innerHTML=buildBlockInner(co,studentName,orgName,ht,done,skip,paid);
       // Click on course block → detail popup
       bl.addEventListener('click',function(e){
-        if(e.target.closest('[data-action="expand"]')){
-          e.stopPropagation();
-          const cb=e.target.closest('.course-block');
-          toggleCourseExpand(cb,co,dates[d]);
-          return;
-        }
         e.stopPropagation();showCourseDetail(co,dates[d]);
       });
       o.appendChild(bl);
@@ -367,12 +360,11 @@ function rwv(){const c=D.getElementById('weekView'),tod=today();const dates=[];f
 function buildBlockInner(co,studentName,orgName,ht,done,skip,paid){
   const icons=(done?'✅':(skip?'🚫':'⬜'))+(paid?'💰':'');
   if(ht<36){
-    return '<div class="cb-name">'+studentName+(icons?' '+icons:'')+'</div><span class="cb-expand" data-action="expand">▼</span>';
+    return '<div class="cb-name">'+studentName+(icons?' '+icons:'')+'</div>';
   }
   let h='<div class="cb-name">'+studentName+(icons?' '+icons:'')+'</div>';
   h+='<div class="cb-meta">'+co.name+(orgName?' · '+orgName:'')+'</div>';
   h+='<div class="cb-meta">'+co.startTime+'-'+co.endTime+(co.tuition?' ¥'+co.tuition:'')+'</div>';
-  h+='<span class="cb-expand" data-action="expand">▼</span>';
   return h;
 }
 function rdv(){const c=D.getElementById('dayView'),tod=today(),dc=getForDate(cdd);
@@ -438,7 +430,6 @@ function tgm(cid,d,action){
 function toggleCourseExpand(bl,co,d){
   if(bl.classList.contains('expanded')){
     bl.classList.remove('expanded');
-    bl.querySelector('.cb-expand').textContent='▼';
     const studentName=sn(co.studentId)||'未指定';
     const orgName=co.organizationId?on(co.organizationId):'';
     const mk=co.marks&&co.marks[d]?co.marks[d]:null;
@@ -449,7 +440,6 @@ function toggleCourseExpand(bl,co,d){
     bl.innerHTML=buildBlockInner(co,studentName,orgName,ht,done,skip,paid);
   }else{
     bl.classList.add('expanded');
-    bl.querySelector('.cb-expand').textContent='▲';
     renderExpandedContent(bl,co,d,bl.offsetHeight);
   }
 }
@@ -498,7 +488,6 @@ function renderExpandedContent(bl,co,d,minH){
   html+='<div class="cb-row cb-meta">💰 ¥'+(co.tuition||0)+(co.tuition&&(done||!skip)?'  '+paidText:'')+'</div>';
   html+='<div class="cb-row cb-meta">'+statusText+'</div>';
   if(co.note)html+='<div class="cb-row cb-meta">📌 '+co.note+'</div>';
-  html+='<span class="cb-expand" data-action="expand">▲</span>';
   bl.innerHTML=html;
 }
 
