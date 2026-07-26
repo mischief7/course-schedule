@@ -66,16 +66,16 @@ input[type=time],input[type=date]{min-height:44px}
 
 #weekView{padding:4px 4px 20px}
 .week-grid{display:grid;grid-template-columns:44px repeat(7,1fr)}
-.day-label{background:var(--surface);text-align:center;padding:8px 2px;font-size:13px;font-weight:700;border-bottom:2px solid var(--border);line-height:1.4;border-left:1px solid #c0c0c0}
+.day-label{background:var(--surface);text-align:center;padding:8px 2px;font-size:13px;font-weight:700;border-bottom:2px solid var(--border);line-height:1.4;border-left:1px solid #a8a8a8}
 .day-label span{display:block;font-size:11px;color:var(--text2);font-weight:500;margin-top:1px}
 .day-label.today{border-bottom-color:var(--accent);color:var(--accent)}.day-label.today span{color:var(--accent)}
 .time-label{font-size:11px;color:var(--text2);text-align:right;padding:0 4px 0 0;height:22px;line-height:22px;font-weight:600;border-bottom:1px solid #e0e0e0}
 .time-label.hour{font-weight:700;color:var(--text)}
-.day-col{position:relative;min-height:22px;border-left:1px solid #c0c0c0;border-bottom:1px solid #e0e0e0}
+.day-col{position:relative;min-height:22px;border-left:1px solid #a8a8a8;border-bottom:1px solid #d0d0d0}
 .week-grid{position:relative;display:grid;grid-template-columns:44px repeat(7,1fr)}
 .week-grid-row-divider{position:absolute;left:0;right:0;height:1px;background:var(--border);pointer-events:none}
 .week-grid-row-divider.hour{height:1.5px;background:var(--text3)}
-.course-block{position:absolute;left:2px;right:2px;border-radius:6px;padding:3px 6px;font-size:12px;line-height:1.3;overflow:hidden;cursor:pointer;color:#fff;font-weight:600;z-index:2;border:3px solid rgba(0,0,0,.4);box-shadow:inset 0 0 0 1px rgba(255,255,255,.2),0 2px 4px rgba(0,0,0,.15);display:flex;flex-direction:column;justify-content:center;text-shadow:0 1px 2px rgba(0,0,0,.3)}
+.course-block{position:absolute;left:0;right:0;border-radius:0;padding:3px 6px;font-size:12px;line-height:1.3;overflow:hidden;cursor:pointer;color:#fff;font-weight:600;z-index:2;border-top:1px solid #d0d0d0;display:flex;flex-direction:column;justify-content:center;text-shadow:0 1px 2px rgba(0,0,0,.3);box-shadow:inset 0 0 0 2px rgba(0,0,0,.25),inset 0 -1px 0 rgba(0,0,0,.25)}
 .course-block.warn{box-shadow:0 0 0 2px var(--warning);animation:warnPulse 1.5s infinite}
 @keyframes warnPulse{0%,100%{box-shadow:0 0 0 2px var(--warning)}50%{box-shadow:0 0 0 4px var(--warning)}}
 .course-block:active{transform:scale(.97)}
@@ -342,7 +342,7 @@ function rwv(){const c=D.getElementById('weekView'),tod=today();const dates=[];f
       const needed=(now>endDt&&(!mk||(!mk.completed&&!mk.skipped)));
       const paid=mk?mk.paid:isAutoPaid(co,dates[d]);
       const bl=document.createElement('div');bl.className='course-block'+(needed?' warn':'');
-      bl.style.cssText=`top:${top}px;height:${ht}px;background:${co.color};border-color:rgba(0,0,0,.25);pointer-events:auto;color:#fff;`;
+      bl.style.cssText=`top:${top}px;height:${ht}px;background:${co.color};pointer-events:auto;color:#fff;`;
       const studentName=sn(co.studentId);
       bl.innerHTML='<div class="cb-name">'+studentName+'</div>';
       bl.dataset.courseId=co.id;bl.dataset.date=dates[d];
