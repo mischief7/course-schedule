@@ -66,13 +66,13 @@ input[type=time],input[type=date]{min-height:44px}
 
 #weekView{padding:4px 4px 20px}
 .week-grid{display:grid;grid-template-columns:44px repeat(7,1fr)}
-.day-label{background:var(--surface);text-align:center;padding:8px 2px;font-size:13px;font-weight:700;border-bottom:2px solid var(--border);line-height:1.4}
+.day-label{background:var(--surface);text-align:center;padding:8px 2px;font-size:13px;font-weight:700;border-bottom:2px solid var(--border);line-height:1.4;border-left:1px solid #c0c0c0}
 .day-label span{display:block;font-size:11px;color:var(--text2);font-weight:500;margin-top:1px}
 .day-label.today{border-bottom-color:var(--accent);color:var(--accent)}.day-label.today span{color:var(--accent)}
-.time-label{font-size:11px;color:var(--text2);text-align:right;padding:0 4px 0 0;height:22px;line-height:22px;font-weight:600;background:rgba(255,255,255,.7);position:relative;z-index:1}
+.time-label{font-size:11px;color:var(--text2);text-align:right;padding:0 4px 0 0;height:22px;line-height:22px;font-weight:600;border-bottom:1px solid #e0e0e0}
 .time-label.hour{font-weight:700;color:var(--text)}
-.day-col{position:relative;min-height:22px}
-.week-grid{position:relative;display:grid;grid-template-columns:44px repeat(7,1fr);background-image:linear-gradient(to right,var(--border) 1px,transparent 1px),linear-gradient(to bottom,var(--border) 1px,transparent 1px);background-size:calc(100%/8) 100%,100% 22px;background-position:44px 0,0 22px;background-repeat:repeat-x,repeat-y}
+.day-col{position:relative;min-height:22px;border-left:1px solid #c0c0c0;border-bottom:1px solid #e0e0e0}
+.week-grid{position:relative;display:grid;grid-template-columns:44px repeat(7,1fr)}
 .week-grid-row-divider{position:absolute;left:0;right:0;height:1px;background:var(--border);pointer-events:none}
 .week-grid-row-divider.hour{height:1.5px;background:var(--text3)}
 .course-block{position:absolute;left:2px;right:2px;border-radius:6px;padding:3px 6px;font-size:12px;line-height:1.3;overflow:hidden;cursor:pointer;color:#fff;font-weight:600;z-index:2;border:3px solid rgba(0,0,0,.4);box-shadow:inset 0 0 0 1px rgba(255,255,255,.2),0 2px 4px rgba(0,0,0,.15);display:flex;flex-direction:column;justify-content:center;text-shadow:0 1px 2px rgba(0,0,0,.3)}
@@ -636,17 +636,10 @@ function rbg(){config.bgImage='';S(KF,config);applyBg();rst();toast('已移除')
 function applyBg(){
   const gridImgs=D.querySelectorAll('.week-grid');
   gridImgs.forEach(function(el){
-    if(config.bgImage){
-      el.style.backgroundImage='linear-gradient(to right,var(--border) 1px,transparent 1px),linear-gradient(to bottom,var(--border) 1px,transparent 1px),url('+config.bgImage+')';
-      el.style.backgroundSize='calc(100%/8) 100%,100% 22px,cover';
-      el.style.backgroundPosition='44px 0,0 22px,center';
-      el.style.backgroundRepeat='repeat-x,repeat-y,no-repeat';
-    }else{
-      el.style.backgroundImage='linear-gradient(to right,var(--border) 1px,transparent 1px),linear-gradient(to bottom,var(--border) 1px,transparent 1px)';
-      el.style.backgroundSize='calc(100%/8) 100%,100% 22px';
-      el.style.backgroundPosition='44px 0,0 22px';
-      el.style.backgroundRepeat='repeat-x,repeat-y';
-    }
+    el.style.backgroundImage=config.bgImage?'url('+config.bgImage+')':'';
+    el.style.backgroundSize='cover';
+    el.style.backgroundPosition='center';
+    el.style.backgroundRepeat='no-repeat';
   });
 }
 function exa(){const d={courses,students,orgs,config,version:5};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download='课程表备份.json';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u);toast('已导出')}
