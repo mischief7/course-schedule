@@ -80,7 +80,7 @@ input[type=time],input[type=date]{min-height:44px}
 @keyframes warnPulse{0%,100%{box-shadow:0 0 0 2px var(--warning)}50%{box-shadow:0 0 0 4px var(--warning)}}
 .course-block:active{transform:scale(.97)}
 .course-block .cb-row{flex-shrink:0}
-.course-block .cb-name{font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700;line-height:1.2;padding-right:11px}
+.course-block .cb-name{font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700;line-height:1.2;padding-right:11px}
 .course-block .cb-meta{font-size:9px;opacity:.95;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
 .course-block .cb-expand{position:absolute;top:2px;right:1px;font-size:7px;opacity:.5;cursor:pointer;padding:0 2px;background:rgba(0,0,0,.18);border-radius:3px;line-height:1;transition:all .15s;color:#fff;z-index:4;pointer-events:auto}
 .course-block .cb-expand:active{opacity:1;transform:scale(1.15)}
@@ -367,10 +367,10 @@ function rwv(){const c=D.getElementById('weekView'),tod=today();const dates=[];f
 function buildBlockInner(co,studentName,orgName,ht,done,skip,paid){
   const icons=(done?'✅':(skip?'🚫':'⬜'))+(paid?'💰':'');
   if(ht<36){
-    return '<div class="cb-name">'+co.name+(icons?' '+icons:'')+'</div><span class="cb-expand" data-action="expand">▼</span>';
+    return '<div class="cb-name">'+studentName+(icons?' '+icons:'')+'</div><span class="cb-expand" data-action="expand">▼</span>';
   }
-  let h='<div class="cb-name">'+co.name+(icons?' '+icons:'')+'</div>';
-  h+='<div class="cb-meta">👤'+studentName+(orgName?' · '+orgName:'')+'</div>';
+  let h='<div class="cb-name">'+studentName+(icons?' '+icons:'')+'</div>';
+  h+='<div class="cb-meta">'+co.name+(orgName?' · '+orgName:'')+'</div>';
   h+='<div class="cb-meta">'+co.startTime+'-'+co.endTime+(co.tuition?' ¥'+co.tuition:'')+'</div>';
   h+='<span class="cb-expand" data-action="expand">▼</span>';
   return h;
@@ -490,9 +490,9 @@ function renderExpandedContent(bl,co,d,minH){
   const paidText=paid?'💰已收':'🔴未收';
   const studentName=sn(co.studentId)||'未指定';
   const orgName=co.organizationId?on(co.organizationId):'';
-  let html='<div class="cb-row cb-name">'+co.name+'</div>';
+  let html='<div class="cb-row cb-name">'+studentName+'</div>';
+  html+='<div class="cb-row cb-meta">📚 '+co.name+(orgName?' · '+orgName:'')+'</div>';
   html+='<div class="cb-row cb-meta">⏰ '+co.startTime+'-'+co.endTime+'</div>';
-  html+='<div class="cb-row cb-meta">👤 '+studentName+'</div>';
   if(co.location)html+='<div class="cb-row cb-meta">📍 '+co.location+'</div>';
   if(co.organizationId)html+='<div class="cb-row cb-meta">🏢 '+orgName+'</div>';
   html+='<div class="cb-row cb-meta">💰 ¥'+(co.tuition||0)+(co.tuition&&(done||!skip)?'  '+paidText:'')+'</div>';
