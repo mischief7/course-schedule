@@ -71,11 +71,9 @@ input[type=time],input[type=date]{min-height:44px}
 .day-label.today{border-bottom-color:var(--accent);color:var(--accent)}.day-label.today span{color:var(--accent)}
 .time-label{font-size:11px;color:var(--text2);text-align:right;padding:0 4px 0 0;height:22px;line-height:22px;font-weight:600;border-bottom:1px solid #e0e0e0}
 .time-label.hour{font-weight:700;color:var(--text)}
-.day-col{position:relative;min-height:22px;border-right:1px solid #bbb;border-bottom:1px solid #e0e0e0}
-/* Grid lines — draw thin horizontal lines INSIDE each cell using a gradient that shows through */
-.day-col::before{content:'';position:absolute;left:0;right:0;top:0;bottom:0;pointer-events:none;z-index:0;
-  background-image:linear-gradient(to bottom, transparent 21px, #d0d0d0 21px, #d0d0d0 22px);
-  background-size:100% 22px}
+.day-col{position:relative;min-height:22px;border-right:1px solid #bbb}
+/* Horizontal grid lines overlay — drawn PER COLUMN on top of course blocks (z-index:3 > course z-index:2) */
+.grid-hlines{position:absolute;inset:0;pointer-events:none;z-index:3;background:repeating-linear-gradient(to bottom,transparent 0,transparent 21px,#d0d0d0 21px,#d0d0d0 22px)}
 .course-block{position:absolute;left:0;right:1px;border-radius:4px;padding:2px 5px;font-size:11px;line-height:1.25;overflow:hidden;cursor:pointer;color:#fff;font-weight:600;z-index:2;display:flex;flex-direction:column;justify-content:center;text-shadow:0 1px 2px rgba(0,0,0,.3);border:2px solid rgba(0,0,0,.25)}
 .course-block.warn{border-color:var(--warning);box-shadow:0 0 0 2px var(--warning);animation:warnPulse 1.5s infinite}
 @keyframes warnPulse{0%,100%{box-shadow:0 0 0 2px var(--warning)}50%{box-shadow:0 0 0 4px var(--warning)}}
@@ -331,7 +329,8 @@ function rwv(){const c=D.getElementById('weekView'),tod=today();const dates=[];f
     for(let d=0;d<7;d++)h+=`<div class="day-col" style="grid-row:${row}" data-date="${dates[d]}" data-time="${ts}"></div>`;
   }
   h+='</div>';c.innerHTML=h;applyBg();const grid=c.querySelector('.week-grid');const now=new Date();
-  for(let d=0;d<7;d++){const dc=getForDate(dates[d]);if(!dc.length)continue;const o=document.createElement('div');o.style.cssText='position:relative;grid-column:'+(d+2)+';grid-row:2/30;pointer-events:none;';
+  for(let d=0;d<7;d++){const dc=getForDate(dates[d]);const o=document.createElement('div');o.style.cssText='position:relative;grid-column:'+(d+2)+';grid-row:2/30;pointer-events:none;';
+    const hl=document.createElement('div');hl.className='grid-hlines';o.appendChild(hl);
     dc.forEach(co=>{
       const sm=tm(co.startTime)-480,em=tm(co.endTime)-480;
       const top=sm/30*22,ht=Math.max((em-sm)/30*22,22);
@@ -342,9 +341,7 @@ function rwv(){const c=D.getElementById('weekView'),tod=today();const dates=[];f
       const done=mk?mk.completed:false;
       const skip=mk?mk.skipped:false;
       const bl=document.createElement('div');bl.className='course-block'+(needed?' warn':'');
-      // Composite background: course color + horizontal grid lines overlay so grid stays visible through course blocks
-      const gridLines='linear-gradient(to bottom, transparent 21px, rgba(255,255,255,.35) 21px, rgba(255,255,255,.35) 22px)';
-      bl.style.cssText=`top:${top}px;height:${ht}px;background-image:${gridLines},linear-gradient(${co.color},${co.color});background-size:100% 22px,100% 100%;background-repeat:repeat,no-repeat;pointer-events:auto;color:#fff;`;
+      bl.style.cssText=`top:${top}px;height:${ht}px;background:${co.color};pointer-events:auto;color:#fff;`;
       bl.dataset.courseId=co.id;bl.dataset.date=dates[d];
       // Build compact content based on block height
       const studentName=sn(co.studentId)||'未指定';
@@ -370,6 +367,66 @@ function rwv(){const c=D.getElementById('weekView'),tod=today();const dates=[];f
   }
   c.querySelectorAll('.day-col').forEach(cell=>{cell.addEventListener('click',function(){oam(cell.dataset.date,cell.dataset.time)})});
 }
+function rdv(){const c=D.getElementById('dayView'),tod=today(),dc=getForDate(cdd);
+  let h=`<div class="day-header"><button class="week-nav-btn" id="btnDayPrev">◀</button><h2>${md(cdd)} ${DN[dow(cdd)-1]}${cdd===tod?' <small style="color:var(--accent)">今天</small>':''}</h2><button class="week-nav-btn" id="btnDayNext">▶</button></div>`;
+  if(!dc.length)h+=`<div class="day-empty"><div class="empty-icon">📭</div>当天没有课程</div>`;
+  else{const now=new Date();dc.forEach(co=>{
+    const snm=sn(co.studentId),onm=on(co.organizationId);
+    const ep=co.endTime.split(':');const endDt=new Date(cdd+'T00:00:00');endDt.setHours(+ep[0],+ep[1],0,0);
+    const mk=co.marks&&co.marks[cdd]?co.marks[cdd]:{completed:false,paid:false,skipped:false};
+    const needed=now>endDt&&!mk.completed&&!mk.skipped;
+    const paid=mk.paid||isAutoPaid(co,cdd);
+    const statusText=mk.completed?'✅ 已上课':(mk.skipped?'🚫 不上课':'⬜ 未上课');
+    const statusCls=mk.completed?'green':(mk.skipped?'orange':'gray');
+    const paidText=paid?'💰 已收':'🔴 未收';
+    const paidCls=paid?'green':'red';
+    h+=`<div class="day-card${needed?' warn':''}" style="border-left:5px solid ${co.color}" data-id="${co.id}" data-date="${cdd}">
+      <div class="dc-time">${co.startTime} - ${co.endTime}${needed?'<span class="dc-time-icon" style="background:#fff3e0;color:#e65100">⚠ 待标记</span>':''}</div>
+      <div class="dc-name">${co.name}</div>
+      ${snm?`<div class="dc-info"><span class="dc-info-icon">👤</span><span>${snm}</span></div>`:''}
+      ${co.location?`<div class="dc-info"><span class="dc-info-icon">📍</span><span>${co.location}</span></div>`:''}
+      ${onm?`<div class="dc-info"><span class="dc-info-icon">🏢</span><span>${onm}</span></div>`:''}
+      ${co.tuition?`<div class="dc-tuition"><span class="dc-tuition-label">课费</span><span>¥${co.tuition}</span></div>`:''}
+      ${co.note?`<div class="dc-info"><span class="dc-info-icon">📌</span><span>${co.note}</span></div>`:''}
+      <div class="dc-status">
+        <span class="dc-chip ${statusCls}" data-action="cycleStatus">${statusText}</span>
+        <span class="dc-chip ${paidCls}" data-action="togglePaid" style="${!mk.completed?'opacity:.4;pointer-events:none;filter:grayscale(1)':''}">${paidText}</span>
+      </div>
+    </div>`});
+  }
+  c.innerHTML=h;
+  c.querySelectorAll('.day-card').forEach(card=>{card.addEventListener('click',function(e){if(!e.target.closest('.dc-chip'))oem(card.dataset.id)})});
+  c.querySelectorAll('[data-action="cycleStatus"]').forEach(b=>{b.addEventListener('click',function(e){e.stopPropagation();tgm(b.closest('.day-card').dataset.id,b.closest('.day-card').dataset.date,'cycleStatus')})});
+  c.querySelectorAll('[data-action="togglePaid"]').forEach(b=>{b.addEventListener('click',function(e){e.stopPropagation();tgm(b.closest('.day-card').dataset.id,b.closest('.day-card').dataset.date,'togglePaid')})});
+  D.getElementById('btnDayPrev').addEventListener('click',function(){cdd=ad(cdd,-1);rdv()});
+  D.getElementById('btnDayNext').addEventListener('click',function(){cdd=ad(cdd,1);rdv()});
+}
+
+function nextStatus(mk){
+  if(!mk.completed&&!mk.skipped)return {completed:true,skipped:false};
+  if(mk.completed)return {completed:false,skipped:true};
+  return {completed:false,skipped:false};
+}
+
+function tgm(cid,d,action){
+  const c=courses.find(function(x){return x.id===cid});if(!c)return;const now=new Date();
+  const ep=c.endTime.split(':');const ed=new Date(d+'T00:00:00');ed.setHours(+ep[0],+ep[1],0,0);
+  if(!c.marks)c.marks={};if(!c.marks[d])c.marks[d]={completed:false,paid:false,skipped:false};
+  const mk=c.marks[d];
+  if(action==='cycleStatus'){
+    if(now<=ed){toast('课程尚未结束');return}
+    const ns=nextStatus(mk);mk.completed=ns.completed;mk.skipped=ns.skipped;
+    if(!mk.completed)mk.paid=false;
+    else if(isAutoPaid(c,d))mk.paid=true;
+    S(KC,courses);if(cv==='day')rdv();else rwv();rsc();toast(ns.skipped?'标记为不上课':(ns.completed?'标记为已上课':'标记为未上课'));return;
+  }
+  if(action==='togglePaid'){
+    if(!mk.completed){toast('仅已上课的课程可修改收费');return}
+    if(now<=ed){toast('课程尚未结束');return}
+    mk.paid=!mk.paid;S(KC,courses);if(cv==='day')rdv();else rwv();rsc();toast(mk.paid?'标记为已收':'标记为未收');return;
+  }
+}
+
 function toggleCourseExpand(bl,co,d){
   if(bl.classList.contains('expanded')){
     bl.classList.remove('expanded');
