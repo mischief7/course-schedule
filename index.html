@@ -357,22 +357,20 @@ function rwv(){const c=D.getElementById('weekView'),tod=today();const dates=[];f
 function showCourseDetail(co,dateStr){
   const mk=co.marks&&co.marks[dateStr]?co.marks[dateStr]:null;
   const paid=mk?mk.paid:isAutoPaid(co,dateStr);
-  const ep=co.endTime.split(':');const ed=new Date(dateStr+'T00:00:00');ed.setHours(+ep[0],+ep[1],0,0);
-  const detail=document.getElementById('courseDetail');
-  let h='<div class="modal-header" style="border-radius:20px 20px 0 0"><h2 style="color:'+co.color+'">'+co.name+'</h2><button class="btn-icon" onclick="closeCourseDetail()">✕</button></div><div class="modal-body">';
-  h+='<div class="dc-info" style="font-size:15px;margin-bottom:10px"><span class="dc-info-icon">⏰</span><span>'+co.startTime+'-'+co.endTime+' · '+md(dateStr)+' '+DN[dow(dateStr)-1]+'</span></div>';
-  if(sn(co.studentId))h+='<div class="dc-info" style="font-size:15px"><span class="dc-info-icon">👤</span><span>'+sn(co.studentId)+'</span></div>';
-  if(co.location)h+='<div class="dc-info" style="font-size:15px"><span class="dc-info-icon">📍</span><span>'+co.location+'</span></div>';
-  if(on(co.organizationId))h+='<div class="dc-info" style="font-size:15px"><span class="dc-info-icon">🏢</span><span>'+on(co.organizationId)+'</span></div>';
-  if(co.tuition)h+='<div class="dc-info" style="font-size:15px"><span class="dc-info-icon">💰</span><span>¥'+co.tuition+'</span></div>';
-  if(co.note)h+='<div class="dc-info" style="font-size:14px;margin-top:6px"><span class="dc-info-icon">📌</span><span>'+co.note+'</span></div>';
   const statusText=mk&&mk.completed?'✅ 已上课':(mk&&mk.skipped?'🚫 不上课':'⬜ 未上课');
   const statusCls=mk&&mk.completed?'green':(mk&&mk.skipped?'orange':'gray');
   const paidText=paid?'💰 已收':'🔴 未收';
   const paidCls=paid?'green':'red';
-  h+='<div class="dc-status" style="margin-top:14px"><span class="dc-chip '+statusCls+'" onclick="cycleStatusFromDetail(\''+co.id+'\',\''+dateStr+'\')">'+statusText+'</span><span class="dc-chip '+paidCls+'" onclick="togglePaidFromDetail(\''+co.id+'\',\''+dateStr+'\')" style="'+(!(mk&&mk.completed)?'opacity:.4;pointer-events:none':'')+'">'+paidText+'</span></div>';
-  h+='</div><div class="modal-footer"><button class="btn-secondary" onclick="closeCourseDetail()">关闭</button><button class="btn-save" onclick="closeCourseDetail();oem(\''+co.id+'\')">编辑</button></div>';
-  detail.innerHTML=h;
+  const detail=D.getElementById('courseDetail');
+  detail.innerHTML='<div class="modal" onclick="event.stopPropagation()"><div class="modal-header" style="border-radius:16px 16px 0 0"><h2 style="color:'+co.color+'">'+co.name+'</h2><button class="btn-icon" onclick="closeCourseDetail()">✕</button></div><div class="modal-body">'+
+    '<div class="dc-info" style="font-size:15px;margin-bottom:8px"><span class="dc-info-icon">⏰</span><span>'+co.startTime+'-'+co.endTime+' · '+md(dateStr)+' '+DN[dow(dateStr)-1]+'</span></div>'+
+    (sn(co.studentId)?'<div class="dc-info" style="font-size:15px"><span class="dc-info-icon">👤</span><span>'+sn(co.studentId)+'</span></div>':'')+
+    (co.location?'<div class="dc-info" style="font-size:15px"><span class="dc-info-icon">📍</span><span>'+co.location+'</span></div>':'')+
+    (on(co.organizationId)?'<div class="dc-info" style="font-size:15px"><span class="dc-info-icon">🏢</span><span>'+on(co.organizationId)+'</span></div>':'')+
+    (co.tuition?'<div class="dc-info" style="font-size:15px"><span class="dc-info-icon">💰</span><span>¥'+co.tuition+'</span></div>':'')+
+    (co.note?'<div class="dc-info" style="font-size:14px;margin-top:6px"><span class="dc-info-icon">📌</span><span>'+co.note+'</span></div>':'')+
+    '<div class="dc-status"><span class="dc-chip '+statusCls+'" onclick="cycleStatusFromDetail(\''+co.id+'\',\''+dateStr+'\')">'+statusText+'</span><span class="dc-chip '+paidCls+'" onclick="togglePaidFromDetail(\''+co.id+'\',\''+dateStr+'\')" style="'+(!(mk&&mk.completed)?'opacity:.4;pointer-events:none':'')+'">'+paidText+'</span></div>'+
+    '</div><div class="modal-footer"><button class="btn-secondary" onclick="closeCourseDetail()">关闭</button><button class="btn-save" onclick="closeCourseDetail();oem(\''+co.id+'\')">编辑</button></div></div>';
   detail.style.display='flex';
   setTimeout(function(){
     const onOutsideClick=function(e){if(detail.contains(e.target))return;if(e.target.closest('.course-block'))return;closeCourseDetail();D.removeEventListener('click',onOutsideClick)};
