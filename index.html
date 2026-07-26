@@ -26,11 +26,11 @@
 html{height:100%;overflow:hidden}
 body{
   font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;
-  background:var(--bg);background-size:cover;background-position:center;background-repeat:no-repeat;
+  background:var(--bg);
   color:var(--text);height:100%;overflow:hidden;
   -webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;
-  transition:background-image .5s;
 }
+.bg-schedule-area{background-size:cover;background-position:center;background-repeat:no-repeat}
 button{font-family:inherit;border:none;cursor:pointer;background:none;color:inherit;font-size:inherit}
 input,select{font-family:inherit;font-size:16px;color:var(--text)}
 select{background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:11px 14px;width:100%}
@@ -69,10 +69,17 @@ input[type=time],input[type=date]{min-height:44px}
 .day-label{background:var(--surface);text-align:center;padding:8px 2px;font-size:13px;font-weight:700;border-bottom:2px solid var(--border);line-height:1.4}
 .day-label span{display:block;font-size:11px;color:var(--text2);font-weight:500;margin-top:1px}
 .day-label.today{border-bottom-color:var(--accent);color:var(--accent)}.day-label.today span{color:var(--accent)}
-.time-label{font-size:11px;color:var(--text2);text-align:right;padding:0 4px 0 0;height:22px;line-height:22px;font-weight:600;border-top:1px solid var(--border)}
-.time-label.hour{border-top:1.5px solid var(--text3);font-weight:700;color:var(--text)}
-.day-col{position:relative;min-height:22px;border-left:1px dashed var(--border);border-top:1px solid var(--border)}
-.course-block{position:absolute;left:1px;right:1px;border-radius:5px;padding:2px 4px;font-size:11px;line-height:1.3;overflow:hidden;cursor:pointer;color:#fff;font-weight:600;z-index:2;border-left:3px solid rgba(255,255,255,.3);display:flex;flex-direction:column;justify-content:flex-start;gap:1px}
+.time-label{font-size:11px;color:var(--text2);text-align:right;padding:0 4px 0 0;height:22px;line-height:22px;font-weight:600;background:rgba(255,255,255,.7);position:relative;z-index:1}
+.time-label.hour{font-weight:700;color:var(--text)}
+.day-col{position:relative;min-height:22px;border-left:1px dashed var(--border)}
+.week-grid{display:grid;grid-template-columns:44px repeat(7,1fr);background-image:linear-gradient(to right,var(--border) 1px,transparent 1px),linear-gradient(to bottom,var(--border) 1px,transparent 1px);background-size:calc(100%/8) 100%,100% 22px;background-position:44px 0,0 22px}
+.week-grid-row-divider{position:absolute;left:0;right:0;height:1px;background:var(--border);pointer-events:none}
+.week-grid-row-divider.hour{height:1.5px;background:var(--text3)}
+.course-block{position:absolute;left:2px;right:2px;border-radius:6px;padding:3px 6px;font-size:12px;line-height:1.3;overflow:hidden;cursor:pointer;color:var(--text);font-weight:600;z-index:2;border:2px solid transparent;display:flex;flex-direction:column;justify-content:center;background:rgba(255,255,255,.4);backdrop-filter:blur(2px)}
+.course-block.warn{box-shadow:0 0 0 2px var(--warning);animation:warnPulse 1.5s infinite}
+@keyframes warnPulse{0%,100%{box-shadow:0 0 0 2px var(--warning)}50%{box-shadow:0 0 0 4px var(--warning)}}
+.course-block:active{transform:scale(.97)}
+.course-block .cb-name{font-size:13px;font-weight:700;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
 .course-block.warn{box-shadow:0 0 0 1.5px #ff9500,0 0 6px rgba(255,149,0,.4)}
 .course-block:active{transform:scale(.97)}
 .course-block .cb-row{flex-shrink:0}
@@ -209,6 +216,9 @@ input[type=time],input[type=date]{min-height:44px}
 <!-- COURSE MODAL -->
 <div class="modal-overlay" id="courseModal" style="display:none"><div class="modal"><div class="modal-header"><h2 id="modalTitle">添加课程</h2><button class="btn-icon" id="btnCloseModal">✕</button></div><div class="modal-body"><input type="hidden" id="courseId"><div class="form-group"><label>课程名称 <span class="req">*</span></label><div style="display:flex;gap:6px"><input type="text" id="cName" list="courseNamesList" style="flex:1"></div><datalist id="courseNamesList"></datalist><div class="hint"><button type="button" id="btnAddCourseName" style="background:none;border:none;color:var(--accent);font-size:11px;cursor:pointer;padding:0">＋ 存为常用</button></div></div><div class="form-row"><div class="form-group"><label>学生 <span class="req">*</span></label><select id="cStudentId"></select></div><div class="form-group"><label>机构</label><select id="cOrgId"><option value="">暂不选择</option></select></div></div><div class="form-row"><div class="form-group"><label>上课地点</label><input type="text" id="cLocation"></div><div class="form-group"><label>课费 (RMB) <span class="req">*</span></label><input type="number" id="cTuition" min="0" step="0.01"></div></div><div class="form-row"><div class="form-group"><label>上课日期 <span class="req">*</span></label><input type="date" id="cDate"></div><div class="form-group"><label>颜色</label><div class="color-picker" id="colorPicker"></div><input type="hidden" id="cColor" value="#4CAF50"></div></div><div class="form-row"><div class="form-group"><label>开始时间 <span class="req">*</span></label><input type="time" id="cStart" step="300" value="09:00"></div><div class="form-group"><label>结束时间 <span class="req">*</span></label><input type="time" id="cEnd" step="300" value="10:00"></div></div><div class="repeat-row"><div class="form-group"><label>重复模式</label><select id="cRepeat"><option value="none">不重复</option><option value="daily">每天重复</option><option value="weekly">每周重复</option></select></div><div class="form-group" id="repeatUntilGroup" style="display:none;margin-top:8px"><label>截止日期 <span class="req">*</span></label><input type="date" id="cRepeatUntil"><div class="hint" id="repeatHint">从上课日期起每周重复至截止日期</div></div></div><div class="form-group"><label>备注</label><input type="text" id="cNote"></div></div><div class="modal-footer"><button class="btn-danger" id="btnDelete" style="display:none">删除课程</button><div style="flex:1"></div><button class="btn-secondary" id="btnCancel">取消</button><button class="btn-save" id="btnSave">保存</button></div></div></div>
 
+<!-- COURSE DETAIL POPUP -->
+<div class="modal-overlay" id="courseDetail" style="display:none"><div class="modal"></div></div>
+
 <!-- STUDENT MODAL -->
 <div class="modal-overlay" id="studentModal" style="display:none"><div class="modal"><div class="modal-header"><h2 id="studentModalTitle">添加学生</h2><button class="btn-icon" id="btnCloseStudentModal">✕</button></div><div class="modal-body"><input type="hidden" id="studentId"><div class="form-group"><label>姓名 <span class="req">*</span></label><input type="text" id="sNameI"></div><div class="form-row"><div class="form-group"><label>年龄</label><input type="text" id="sAge" placeholder="如：六年级 或 8岁"></div><div class="form-group"><label>电话</label><input type="tel" id="sPhone" placeholder="手机号"></div></div><div class="form-row"><div class="form-group"><label>学习基础</label><input type="text" id="sLevel" placeholder="如：零基础"></div><div class="form-group"><label>学生类型</label><select id="sType"><option value="individual">个人教学</option><option value="institutional">机构教学</option></select></div></div><div class="form-group" id="sOrgGroup"><label>所属机构</label><select id="sOrgId"><option value="">无</option></select><div class="hint" id="sOrgHint">个人教学不需选择机构</div></div><div class="form-group" id="sLocationGroup"><label>上课地点 <span class="hint" style="color:var(--text2);font-weight:400;text-transform:none">(仅个人)</span></label><input type="text" id="sLocationI"></div><div class="form-group"><label>备注</label><input type="text" id="sNoteI" placeholder="注意事项等"></div><div class="form-group"><label>默认课费 (RMB)</label><input type="number" id="sDefTuition" min="0" step="5" placeholder="0"><div class="hint">添课自动填入，0不填充</div></div><div class="form-group"><label>课程时长 (分钟)</label><input type="number" id="sDuration" min="0" step="5" placeholder="0"><div class="hint">添课自动算结束时间，0不计算</div></div><div class="form-group"><label>付费模式</label><select id="sPaymentMode"><option value="postpaid">后付费（先上课后付）</option><option value="prepaid">预付费（先付后上课）</option></select></div><div id="sPrepaidGroup" style="display:none"><div id="sPrepaidEntries"></div><button class="btn-sm-outline" id="btnAddPrepaid" style="margin:8px 0;font-size:12px">＋ 添加一笔预付费</button></div></div><div class="modal-footer"><button class="btn-danger" id="btnDeleteStudent" style="display:none">删除学生</button><div style="flex:1"></div><button class="btn-secondary" id="btnCancelStudent">取消</button><button class="btn-save" id="btnSaveStudent">保存</button></div></div></div>
 
@@ -315,16 +325,14 @@ function rsc(){
 window.cddScroll=function(){document.querySelector('.main-content').scrollTo({top:0,behavior:'smooth'})};
 
 function rwv(){const c=D.getElementById('weekView'),tod=today();const dates=[];for(let i=0;i<7;i++)dates.push(ad(cws,i));
-  // 30-min rows: 8:00-21:00 = 26 rows, each 18px = 468px
-  let h='<div class="week-grid"><div class="time-label" style="grid-row:1"></div>';
+  let h='<div class="week-grid bg-schedule-area"><div class="time-label" style="grid-row:1"></div>';
   for(let i=0;i<7;i++){const cl=(dates[i]===tod)?'day-label today':'day-label';h+=`<div class="${cl}">${DN[i]}<span>${ms(dates[i])}</span></div>`}
   for(let hh=8;hh<22;hh++)for(let m=0;m<60;m+=30){
     const row=(hh-8)*2+(m/30)+2,ts=String(hh).padStart(2,'0')+':'+String(m).padStart(2,'0');
     h+=`<div class="time-label${m===0?' hour':''}" style="grid-row:${row}">${m===0?ts:''}</div>`;
     for(let d=0;d<7;d++)h+=`<div class="day-col" style="grid-row:${row}" data-date="${dates[d]}" data-time="${ts}"></div>`;
   }
-  h+='</div>';c.innerHTML=h;const grid=c.querySelector('.week-grid');const now=new Date();
-  // overlay spans rows 2 to 30 (8:00-22:00 = 28 rows + header)
+  h+='</div>';c.innerHTML=h;if(config.bgImage)c.querySelector('.week-grid').style.backgroundImage='url('+config.bgImage+')';const grid=c.querySelector('.week-grid');const now=new Date();
   for(let d=0;d<7;d++){const dc=getForDate(dates[d]);if(!dc.length)continue;const o=document.createElement('div');o.style.cssText='position:relative;grid-column:'+(d+2)+';grid-row:2/30;pointer-events:none;';
     dc.forEach(co=>{
       const sm=tm(co.startTime)-480,em=tm(co.endTime)-480;
@@ -334,95 +342,45 @@ function rwv(){const c=D.getElementById('weekView'),tod=today();const dates=[];f
       const needed=(now>endDt&&(!mk||(!mk.completed&&!mk.skipped)));
       const paid=mk?mk.paid:isAutoPaid(co,dates[d]);
       const bl=document.createElement('div');bl.className='course-block'+(needed?' warn':'');
-      bl.style.cssText=`top:${top}px;height:${ht}px;background:${co.color};pointer-events:auto;`;
+      bl.style.cssText=`top:${top}px;height:${ht}px;border-color:${co.color};color:${co.color};pointer-events:auto;`;
       const studentName=sn(co.studentId);
-      const orgName=on(co.organizationId);
-      const aIcon=mk&&mk.skipped?'🚫':(mk&&mk.completed?'✅':'');
-      const expandedSet=false;
-      let html='<span class="cb-expand" data-expand="1">▼</span>';
-      html+='<div class="cb-row cb-name">'+co.name+(studentName?'·'+studentName:'')+(needed?' ⚠':'')+'</div>';
-      if(ht>=44)html+='<div class="cb-row cb-meta">'+co.startTime+'-'+co.endTime+' '+(co.location||'')+'</div>';
-      if(ht>=66){
-        html+='<div class="cb-row cb-meta">'+(orgName||'');
-        if(co.tuition)html+='  💰¥'+co.tuition;
-        html+='</div><div class="cb-row cb-status">';
-        if(mk&&mk.completed)html+='<span>✅</span>';
-        if(paid)html+='<span>💰</span>';
-        if(aIcon)html+='<span>'+aIcon+'</span>';
-        html+='</div>';
-      }
-      bl.innerHTML=html;
-      const expBtn=bl.querySelector('.cb-expand');
-      if(expBtn)expBtn.addEventListener('click',function(e){e.stopPropagation();bl.classList.toggle('expanded');expBtn.textContent=bl.classList.contains('expanded')?'▲':'▼';renderExpandedContent(bl,co,dates[d],ht);});
-      bl.addEventListener('click',function(e){if(e.target.classList.contains('cb-expand'))return;e.stopPropagation();oem(co.id)});
+      bl.innerHTML='<div class="cb-name">'+studentName+'</div>';
+      bl.dataset.courseId=co.id;bl.dataset.date=dates[d];
+      bl.addEventListener('click',function(e){e.stopPropagation();showCourseDetail(co,dates[d])});
       o.appendChild(bl);
     });grid.appendChild(o);
   }
   c.querySelectorAll('.day-col').forEach(cell=>{cell.addEventListener('click',function(){oam(cell.dataset.date,cell.dataset.time)})});
 }
 
-function rdv(){const c=D.getElementById('dayView'),tod=today(),dc=getForDate(cdd);
-  let h=`<div class="day-header"><button class="week-nav-btn" id="btnDayPrev">◀</button><h2>${md(cdd)} ${DN[dow(cdd)-1]}${cdd===tod?' <small style="color:var(--accent)">今天</small>':''}</h2><button class="week-nav-btn" id="btnDayNext">▶</button></div>`;
-  if(!dc.length)h+=`<div class="day-empty"><div class="empty-icon">📭</div>当天没有课程</div>`;
-  else{const now=new Date();dc.forEach(co=>{
-    const snm=sn(co.studentId),onm=on(co.organizationId);
-    const ep=co.endTime.split(':');const endDt=new Date(cdd+'T00:00:00');endDt.setHours(+ep[0],+ep[1],0,0);
-    const canEdit=now>endDt;const mk=co.marks&&co.marks[cdd]?co.marks[cdd]:{completed:false,paid:false,a:null};
-    const needed=now>endDt&&!mk.completed&&!mk.skipped;
-    const paid=canEdit?mk.paid:isAutoPaid(co,cdd);
-    const statusText=mk.completed?'✅ 已上课':(mk.skipped?'🚫 不上课':'⬜ 未上课');
-    const statusCls=mk.completed?'green':(mk.skipped?'orange':'gray');
-    const paidText=paid?'💰 已收':'🔴 未收';
-    const paidCls=paid?'green':'red';
-    h+=`<div class="day-card${needed?' warn':''}" style="--c:${co.color}" data-id="${co.id}" data-date="${cdd}">
-      <div class="dc-time">${co.startTime} - ${co.endTime}${needed?'<span class="dc-time-icon" style="background:#fff3e0;color:#e65100">⚠ 待标记</span>':''}</div>
-      <div class="dc-name" style="color:${co.color}">${co.name}</div>
-      ${snm?`<div class="dc-info"><span class="dc-info-icon">👤</span><span>${snm}</span></div>`:''}
-      ${co.location?`<div class="dc-info"><span class="dc-info-icon">📍</span><span>${co.location}</span></div>`:''}
-      ${onm?`<div class="dc-info"><span class="dc-info-icon">🏢</span><span>${onm}</span></div>`:''}
-      ${co.tuition?`<div class="dc-tuition"><span class="dc-tuition-label">课费</span><span>¥${co.tuition}</span></div>`:''}
-      ${co.note?`<div class="dc-info"><span class="dc-info-icon">📌</span><span>${co.note}</span></div>`:''}
-      <div class="dc-status">
-        <span class="dc-chip ${statusCls}" data-action="cycleStatus">${statusText}</span>
-        <span class="dc-chip ${paidCls}" data-action="togglePaid" style="${!mk.completed?'opacity:.4;pointer-events:none;filter:grayscale(1)':''}">${paidText}</span>
-      </div>
-    </div>`});
-  }
-  c.innerHTML=h;
-  c.querySelectorAll('.day-card').forEach(card=>{card.addEventListener('click',function(e){if(!e.target.closest('.dc-chip'))oem(card.dataset.id)})});
-  c.querySelectorAll('[data-action="toggleComplete"]').forEach(b=>{b.addEventListener('click',function(e){e.stopPropagation();tgm(b.closest('.day-card').dataset.id,b.closest('.day-card').dataset.date,'toggleComplete')})});
-  c.querySelectorAll('[data-action="togglePaid"]').forEach(b=>{b.addEventListener('click',function(e){e.stopPropagation();tgm(b.closest('.day-card').dataset.id,b.closest('.day-card').dataset.date,'togglePaid')})});
-  c.querySelectorAll('[data-action="cycleStatus"]').forEach(b=>{b.addEventListener('click',function(e){e.stopPropagation();tgm(b.closest('.day-card').dataset.id,b.closest('.day-card').dataset.date,'cycleStatus')})});
-  D.getElementById('btnDayPrev').addEventListener('click',function(){cdd=ad(cdd,-1);rdv()});
-  D.getElementById('btnDayNext').addEventListener('click',function(){cdd=ad(cdd,1);rdv()});
+function showCourseDetail(co,dateStr){
+  const mk=co.marks&&co.marks[dateStr]?co.marks[dateStr]:null;
+  const paid=mk?mk.paid:isAutoPaid(co,dateStr);
+  const ep=co.endTime.split(':');const ed=new Date(dateStr+'T00:00:00');ed.setHours(+ep[0],+ep[1],0,0);
+  const detail=document.getElementById('courseDetail');
+  let h='<div class="modal-header" style="border-radius:20px 20px 0 0"><h2 style="color:'+co.color+'">'+co.name+'</h2><button class="btn-icon" onclick="closeCourseDetail()">✕</button></div><div class="modal-body">';
+  h+='<div class="dc-info" style="font-size:15px;margin-bottom:10px"><span class="dc-info-icon">⏰</span><span>'+co.startTime+'-'+co.endTime+' · '+md(dateStr)+' '+DN[dow(dateStr)-1]+'</span></div>';
+  if(sn(co.studentId))h+='<div class="dc-info" style="font-size:15px"><span class="dc-info-icon">👤</span><span>'+sn(co.studentId)+'</span></div>';
+  if(co.location)h+='<div class="dc-info" style="font-size:15px"><span class="dc-info-icon">📍</span><span>'+co.location+'</span></div>';
+  if(on(co.organizationId))h+='<div class="dc-info" style="font-size:15px"><span class="dc-info-icon">🏢</span><span>'+on(co.organizationId)+'</span></div>';
+  if(co.tuition)h+='<div class="dc-info" style="font-size:15px"><span class="dc-info-icon">💰</span><span>¥'+co.tuition+'</span></div>';
+  if(co.note)h+='<div class="dc-info" style="font-size:14px;margin-top:6px"><span class="dc-info-icon">📌</span><span>'+co.note+'</span></div>';
+  const statusText=mk&&mk.completed?'✅ 已上课':(mk&&mk.skipped?'🚫 不上课':'⬜ 未上课');
+  const statusCls=mk&&mk.completed?'green':(mk&&mk.skipped?'orange':'gray');
+  const paidText=paid?'💰 已收':'🔴 未收';
+  const paidCls=paid?'green':'red';
+  h+='<div class="dc-status" style="margin-top:14px"><span class="dc-chip '+statusCls+'" onclick="cycleStatusFromDetail(\''+co.id+'\',\''+dateStr+'\')">'+statusText+'</span><span class="dc-chip '+paidCls+'" onclick="togglePaidFromDetail(\''+co.id+'\',\''+dateStr+'\')" style="'+(!(mk&&mk.completed)?'opacity:.4;pointer-events:none':'')+'">'+paidText+'</span></div>';
+  h+='</div><div class="modal-footer"><button class="btn-secondary" onclick="closeCourseDetail()">关闭</button><button class="btn-save" onclick="closeCourseDetail();oem(\''+co.id+'\')">编辑</button></div>';
+  detail.innerHTML=h;
+  detail.style.display='flex';
+  setTimeout(function(){
+    const onOutsideClick=function(e){if(detail.contains(e.target))return;if(e.target.closest('.course-block'))return;closeCourseDetail();D.removeEventListener('click',onOutsideClick)};
+    D.addEventListener('click',onOutsideClick);
+  },100);
 }
-const dcs=document.createElement('style');dcs.textContent='.day-card::before{background:var(--c)}';document.head.appendChild(dcs);
-
-// Status cycle: 未上课 → 已上课 → 不上课 → 未上课
-function nextStatus(mk){
-  if(!mk.completed&&!mk.skipped)return {completed:true,skipped:false};
-  if(mk.completed)return {completed:false,skipped:true};
-  return {completed:false,skipped:false};
-}
-
-function tgm(cid,d,action){
-  const c=courses.find(function(x){return x.id===cid});if(!c)return;const now=new Date();
-  const ep=c.endTime.split(':');const ed=new Date(d+'T00:00:00');ed.setHours(+ep[0],+ep[1],0,0);
-  if(!c.marks)c.marks={};if(!c.marks[d])c.marks[d]={completed:false,paid:false,skipped:false};
-  const mk=c.marks[d];
-  if(action==='cycleStatus'){
-    if(now<=ed){toast('课程尚未结束');return}
-    const ns=nextStatus(mk);mk.completed=ns.completed;mk.skipped=ns.skipped;
-    if(!mk.completed)mk.paid=false;
-    else if(isAutoPaid(c,d))mk.paid=true;
-    S(KC,courses);rdv();rsc();toast(ns.skipped?'标记为不上课':(ns.completed?'标记为已上课':'标记为未上课'));return;
-  }
-  if(action==='togglePaid'){
-    if(!mk.completed){toast('仅已上课的课程可修改收费');return}
-    if(now<=ed){toast('课程尚未结束');return}
-    mk.paid=!mk.paid;S(KC,courses);rdv();toast(mk.paid?'标记为已收':'标记为未收');return;
-  }
-}
+function closeCourseDetail(){D.getElementById('courseDetail').style.display='none'}
+function cycleStatusFromDetail(cid,d){tgm(cid,d,'cycleStatus');closeCourseDetail();setTimeout(function(){const co=courses.find(function(x){return x.id===cid});if(co)showCourseDetail(co,d)},50)}
+function togglePaidFromDetail(cid,d){tgm(cid,d,'togglePaid');closeCourseDetail();setTimeout(function(){const co=courses.find(function(x){return x.id===cid});if(co)showCourseDetail(co,d)},50)}
 
 function renderExpandedContent(bl,co,d,minH){
   const mk=co.marks&&co.marks[d]?co.marks[d]:null;
@@ -675,8 +633,9 @@ function eicsfn(){if(!courses.length){toast('暂无课程');return}const ics=gic
 
 function rst(){D.getElementById('sName').value=config.scheduleName;const bs=D.getElementById('bgStatus');if(config.bgImage){bs.textContent='✓ 已设置';D.getElementById('btnRemoveBg').style.display='inline-block'}else{bs.textContent='';D.getElementById('btnRemoveBg').style.display='none'}}
 function svst(){config.scheduleName=D.getElementById('sName').value.trim()||'我的课程表';S(KF,config);toast('已保存')}
-function hbg(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=function(ev){config.bgImage=ev.target.result;S(KF,config);document.body.style.backgroundImage='url('+config.bgImage+')';rst();toast('背景图已设置')};r.readAsDataURL(f)}
-function rbg(){config.bgImage='';S(KF,config);document.body.style.backgroundImage='';rst();toast('已移除')}
+function hbg(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=function(ev){config.bgImage=ev.target.result;S(KF,config);applyBg();rst();toast('背景图已设置')};r.readAsDataURL(f)}
+function rbg(){config.bgImage='';S(KF,config);applyBg();rst();toast('已移除')}
+function applyBg(){const v=config.bgImage?'url('+config.bgImage+')':'';D.querySelectorAll('.week-grid,.day-view-wrap').forEach(function(el){el.style.backgroundImage=v})}
 function exa(){const d={courses,students,orgs,config,version:5};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download='课程表备份.json';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u);toast('已导出')}
 function hia(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=function(ev){try{const d=JSON.parse(ev.target.result);if(!d.courses){toast('格式不正确');return}courses=d.courses||[];students=d.students||[];orgs=d.orgs||[];config=d.config||{scheduleName:'我的课程表',bgImage:''};S(KC,courses);S(KS,students);S(KO,orgs);S(KF,config);document.body.style.backgroundImage=config.bgImage?'url('+config.bgImage+')':'';if(tab==='schedule'){rsc();if(cv==='week')rwv();else rdv()}else if(tab==='students')rsl();else if(tab==='orgs')rol();else if(tab==='salary')rss();else rst();toast('已导入 '+courses.length+' 课 '+students.length+' 学生 '+orgs.length+' 机构')}catch(err){toast('导入失败')}};r.readAsText(f);e.target.value=''}
 function cla(){if(!confirm('确定清空所有数据？'))return;courses=[];students=[];orgs=[];config={scheduleName:'我的课程表',bgImage:''};S(KC,courses);S(KS,students);S(KO,orgs);S(KF,config);document.body.style.backgroundImage='';if(tab==='schedule'){rsc();if(cv==='week')rwv();else rdv()}else if(tab==='students')rsl();else if(tab==='orgs')rol();else if(tab==='salary')rss();else rst();toast('已清空')}
@@ -715,7 +674,7 @@ if('serviceWorker' in navigator){const sw="const C='schedule-v8';self.addEventLi
 (function init(){
   // Migrate old prepaid to prepaidEntries array
   students=students.map(function(s){if(s.prepaidAmount&&!s.prepaidEntries){s.prepaidEntries=[{amount:s.prepaidAmount,date:s.prepaidDate||''}]}if(!s.prepaidEntries)s.prepaidEntries=[];return s});S(KS,students);
-  if(config.bgImage)document.body.style.backgroundImage='url('+config.bgImage+')';unw();rsc();rwv();setupStudentSelectListener();}());
+  if(config.bgImage)applyBg();unw();rsc();rwv();setupStudentSelectListener();}());
 </script>
 </body>
 </html>
